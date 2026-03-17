@@ -15,7 +15,7 @@ st.markdown("""
     /* Judul & Teks Utama (Warna Hijau MAN 1) */
     h1, h2, h3, .stMarkdown p { color: #007A00 !important; font-weight: bold; }
     
-    /* Label Input (Warna Hitam agar Terbaca) */
+    /* Label Input */
     label, .stWidget label { color: #333333 !important; font-weight: 600 !important; }
 
     /* Kotak Header Dashboard */
@@ -23,13 +23,14 @@ st.markdown("""
         display: flex; 
         align-items: center; 
         background-color: #f0f7f0 !important;
-        padding: 20px; 
+        padding: 30px; 
         border-radius: 15px; 
-        border-left: 10px solid #007A00; 
+        border-left: 12px solid #007A00; 
         margin-bottom: 30px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
 
-    /* Tombol Utama Hijau */
+    /* Tombol Utama */
     .stButton>button { 
         background-color: #007A00 !important; 
         color: white !important; 
@@ -39,7 +40,7 @@ st.markdown("""
         border: none;
     }
 
-    /* Tombol Download (Warna Berbeda agar Terlihat) */
+    /* Tombol Download */
     .stDownloadButton>button {
         background-color: #2E7D32 !important;
         color: white !important;
