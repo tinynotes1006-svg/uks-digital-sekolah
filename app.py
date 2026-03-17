@@ -70,7 +70,7 @@ if not st.session_state.logged_in:
         u = st.text_input("Username")
         p = st.text_input("Password", type="password")
         if st.button("Masuk"):
-            if u == "admin" and p == "uks123":
+            if u == "adminuks" and p == "uks12345":
                 st.session_state.logged_in = True
                 st.rerun()
             else:
@@ -113,7 +113,7 @@ if menu == "📊 Dashboard":
     # HEADER DASHBOARD
     st.markdown(f"""
         <div class="header-container">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/b/bd/Logo_UKS.png" width="70">
+            <img src="logo_uks.png" width="70">
             <div class="school-name">
                 SISTEM INFORMASI UKS DIGITAL<br>
                 <span style="font-size: 20px; font-weight: 500; color: #444;">MAN 1 KOTA SUKABUMI</span>
