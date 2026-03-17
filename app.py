@@ -103,15 +103,15 @@ with st.sidebar:
 
 # --- 6. DASHBOARD ---
 if menu == "📊 Dashboard":
-    # Header dengan Logo
+    # Header dengan Logo UKS yang Diperbesar
     st.markdown('<div class="header-box">', unsafe_allow_html=True)
-    col_logo, col_title = st.columns([1, 5])
+    col_logo, col_title = st.columns([1, 4])
     with col_logo:
         if os.path.exists("logo_uks.png"):
-            st.image("logo_uks.png", width=80)
+            st.image("logo_uks.png", width=150) # Logo diperbesar di dashboard
     with col_title:
-        st.title("SISTEM UKS DIGITAL")
-        st.write("MAN 1 KOTA SUKABUMI")
+        st.markdown("<h1 style='margin-bottom:0;'>SISTEM UKS DIGITAL</h1>", unsafe_allow_html=True)
+        st.markdown("<h3 style='margin-top:0; color:#444 !important;'>MAN 1 KOTA SUKABUMI</h3>", unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
     # Statistik
