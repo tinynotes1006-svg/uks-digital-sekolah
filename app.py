@@ -1,182 +1,141 @@
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 import plotly.express as px
+import os
+from datetime import datetime
 
 # --- 1. KONFIGURASI HALAMAN ---
-st.set_page_config(page_title="UKS Digital MAN 1 KOTA SUKABUMI", layout="wide", page_icon="🏥")
+st.set_page_config(page_title="UKS MAN 1 KOTA SUKABUMI", layout="wide", page_icon="🏥")
 
-# --- 2. DESAIN MODERN (HIJAU CMYK: 100, 0, 100, 30 -> #007A00) ---
+# --- 2. STYLE CSS (HIJAU MAN 1) ---
 st.markdown("""
     <style>
     .stApp { background-color: #FFFFFF; }
     [data-testid="stSidebar"] { background-color: #F8F9FA; border-right: 1px solid #E0E0E0; }
     
-    /* Container Header */
-    .header-container {
+    /* Header Container */
+    .header-box {
         display: flex;
         align-items: center;
         background-color: #f0f7f0;
-        padding: 25px;
+        padding: 20px;
         border-radius: 15px;
-        margin-bottom: 25px;
         border-left: 10px solid #007A00;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
     }
     
-    .school-name {
-        color: #007A00;
-        font-size: 26px;
-        font-weight: 800;
+    .title-text {
         margin-left: 20px;
-        line-height: 1.2;
+        color: #007A00;
     }
 
-    /* Tombol Utama */
-    .stButton>button {
-        background-color: #007A00;
-        color: white;
-        border-radius: 8px;
-        font-weight: 600;
-        width: 100%;
-        border: none;
-    }
-    
-    /* Kartu Statistik */
-    [data-testid="stMetric"] {
-        background-color: #FFFFFF;
-        border-top: 5px solid #007A00;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-    
+    /* Button & Metrics */
+    .stButton>button { background-color: #007A00; color: white; border-radius: 8px; width: 100%; border:none; }
+    [data-testid="stMetric"] { background-color: #FFFFFF; border-top: 5px solid #007A00; padding: 15px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
     h1, h2, h3 { color: #007A00 !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. SISTEM LOGIN ---
+# --- 3. FUNGSI DATABASE CSV ---
+def load_csv(file_name, columns):
+    if os.path.exists(file_name):
+        return pd.read_csv(file_name)
+    else:
+        df = pd.DataFrame(columns=columns)
+        df.to_csv(file_name, index=False)
+        return df
+
+# Load data awal
+df_pasien = load_csv("data_pasien.csv", ["Tanggal", "Nama", "Kelas", "Keluhan", "Obat"])
+df_obat = load_csv("data_obat.csv", ["Obat", "Stok", "Satuan"])
+df_kegiatan = load_csv("data_kegiatan.csv", ["Tanggal", "Nama Kegiatan", "Lokasi", "Jumlah Peserta"])
+
+# --- 4. SISTEM LOGIN ---
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
     _, col2, _ = st.columns([1, 1.2, 1])
     with col2:
-        st.markdown("<br><br>", unsafe_allow_html=True)
-        try: st.image("logo_uks.png", width=120)
-        except: st.info("🏥")
-        st.title("Login UKS Digital")
-        st.subheader("MAN 1 KOTA SUKABUMI")
+        try: st.image("logo_uks.png", width=100)
+        except: st.warning("Logo UKS tidak ditemukan")
+        st.title("Login UKS")
+        st.info("MAN 1 KOTA SUKABUMI")
         u = st.text_input("Username")
         p = st.text_input("Password", type="password")
         if st.button("Masuk"):
-            if u == "adminuks" and p == "uks12345":
+            if u == "admin" and p == "uks123":
                 st.session_state.logged_in = True
                 st.rerun()
-            else:
-                st.error("Username atau Password Salah!")
+            else: st.error("Akses Ditolak!")
     st.stop()
-
-# --- 4. KONEKSI DATA ---
-conn = st.connection("gsheets", type=GSheetsConnection)
-
-def load_data():
-    try:
-        p = conn.read(worksheet="Pasien", ttl=0)
-        o = conn.read(worksheet="Obat", ttl=0)
-        k = conn.read(worksheet="Kegiatan", ttl=0)
-        return p, o, k
-    except Exception as e:
-        st.error(f"Koneksi Database Gagal: {e}")
-        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-
-df_pasien, df_obat, df_kegiatan = load_data()
 
 # --- 5. SIDEBAR ---
 with st.sidebar:
-    col_s1, col_s2 = st.columns([1, 3])
-    with col_s1:
+    col_side1, col_side2 = st.columns([1, 3])
+    with col_side1:
         try: st.image("logo_sekolah.png", width=50)
         except: st.write("🏫")
-    with col_s2:
-        st.markdown("### MAN 1 <br> KOTA SUKABUMI", unsafe_allow_html=True)
+    with col_side2:
+        st.markdown("**MAN 1 KOTA SUKABUMI**")
     
     st.divider()
-    menu = st.radio("NAVIGASI UTAMA", ["📊 Dashboard", "🤒 Input Pasien", "📅 Laporan Kegiatan", "💊 Stok Obat"])
+    menu = st.radio("MENU", ["📊 Dashboard", "🤒 Input Pasien", "📅 Laporan Kegiatan", "💊 Stok Obat"])
     st.divider()
-    if st.button("Logout"):
+    if st.button("Keluar"):
         st.session_state.logged_in = False
         st.rerun()
 
-# --- 6. HALAMAN DASHBOARD ---
+# --- 6. DASHBOARD ---
 if menu == "📊 Dashboard":
-    # HEADER DASHBOARD
-    st.markdown(f"""
-        <div class="header-container">
-            <img src="logo_uks.png" width="70">
-            <div class="school-name">
-                SISTEM INFORMASI UKS DIGITAL<br>
-                <span style="font-size: 20px; font-weight: 500; color: #444;">MAN 1 KOTA SUKABUMI</span>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+    # Header dengan Logo PNG
+    col_h1, col_h2 = st.columns([1, 8])
+    with col_h1:
+        try: st.image("logo_uks.png", width=80)
+        except: st.write("🏥")
+    with col_h2:
+        st.title("SISTEM INFORMASI UKS DIGITAL")
+        st.subheader("MAN 1 KOTA SUKABUMI")
+
+    st.markdown("---")
     
-    # Statistik Utama
-    m1, m2, m3 = st.columns(3)
-    m1.metric("Total Kunjungan", f"{len(df_pasien)} Siswa")
-    m2.metric("Total Kegiatan", f"{len(df_kegiatan)} Acara")
-    m3.metric("Jenis Obat", f"{len(df_obat)} Macam")
+    # Metrik
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Pasien Tercatat", len(df_pasien))
+    c2.metric("Kegiatan UKS", len(df_kegiatan))
+    c3.metric("Jenis Obat", len(df_obat))
 
     st.divider()
     
-    col_kiri, col_kanan = st.columns([2, 1])
-    
-    with col_kiri:
-        st.subheader("📈 Statistik Kunjungan Siswa")
+    col_grafik, col_tabel = st.columns([2, 1])
+    with col_grafik:
+        st.subheader("📈 Tren Kunjungan")
         if not df_pasien.empty:
-            fig = px.area(df_pasien, x='Tanggal', color_discrete_sequence=['#007A00'])
-            fig.update_layout(hovermode="x unified", plot_bgcolor='rgba(0,0,0,0)')
+            fig = px.line(df_pasien, x='Tanggal', title="Grafik Pasien", color_discrete_sequence=['#007A00'])
             st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.warning("Belum ada data kunjungan pasien.")
-    
-    with col_kanan:
-        st.subheader("📋 Agenda Kegiatan")
-        if not df_kegiatan.empty:
-            st.dataframe(df_kegiatan[['Nama Kegiatan', 'Tanggal']].tail(5), hide_index=True)
-        else:
-            st.info("Belum ada riwayat kegiatan.")
+    with col_tabel:
+        st.subheader("📋 Agenda Terbaru")
+        st.table(df_kegiatan[['Nama Kegiatan', 'Tanggal']].tail(5))
 
-# --- 7. HALAMAN INPUT PASIEN ---
+# --- 7. INPUT PASIEN ---
 elif menu == "🤒 Input Pasien":
-    st.title("🤒 Pencatatan Pasien UKS")
-    with st.form("form_pasien"):
-        tgl = st.date_input("Tanggal Pemeriksaan")
-        nama = st.text_input("Nama Lengkap Siswa")
-        kls = st.selectbox("Kelas", ["X", "XI", "XII"])
-        klh = st.text_area("Keluhan/Diagnosa")
-        list_obat = df_obat['Obat'].tolist() if not df_obat.empty else ["Lainnya"]
-        obt = st.selectbox("Tindakan/Obat diberikan", list_obat)
+    st.title("🤒 Pencatatan Pasien")
+    with st.form("form_p", clear_on_submit=True):
+        t = st.date_input("Tanggal")
+        n = st.text_input("Nama Siswa")
+        k = st.selectbox("Kelas", ["X", "XI", "XII"])
+        kl = st.text_area("Keluhan")
+        o_list = df_obat['Obat'].tolist() if not df_obat.empty else ["Lainnya"]
+        o = st.selectbox("Obat", o_list)
         
-        if st.form_submit_button("Simpan Data Pasien"):
-            st.success(f"Data {nama} Berhasil Dicatat!")
+        if st.form_submit_button("Simpan Data"):
+            new_row = pd.DataFrame([[t, n, k, kl, o]], columns=df_pasien.columns)
+            updated_df = pd.concat([df_pasien, new_row], ignore_index=True)
+            updated_df.to_csv("data_pasien.csv", index=False)
+            st.success("Data Berhasil Disimpan di Lokal!")
             st.balloons()
 
-# --- 8. HALAMAN KEGIATAN ---
-elif menu == "📅 Laporan Kegiatan":
-    st.title("📅 Laporan Aktivitas UKS")
-    with st.form("form_keg"):
-        tgl_k = st.date_input("Tanggal Pelaksanaan")
-        nama_k = st.text_input("Nama Kegiatan (Contoh: Imunisasi)")
-        lokasi = st.text_input("Lokasi Kegiatan")
-        peserta = st.number_input("Jumlah Peserta Terlibat", min_value=0)
-        if st.form_submit_button("Simpan Laporan Kegiatan"):
-            st.success(f"Kegiatan '{nama_k}' telah diverifikasi.")
-
-# --- 9. HALAMAN STOK OBAT ---
-else:
-    st.title("💊 Manajemen Stok Obat")
-    if not df_obat.empty:
-        st.dataframe(df_obat, use_container_width=True, hide_index=True)
-    else:
-        st.error("Data stok obat tidak terbaca.")
+# --- 8. STOK OBAT ---
+elif menu == "💊 Stok Obat":
+    st.title("💊 Inventaris Obat")
+    st.dataframe(df_obat, use_container_width=True, hide_index=True)
