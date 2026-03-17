@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import os
-from datetime import datetime
 
 # --- 1. KONFIGURASI HALAMAN ---
 st.set_page_config(page_title="UKS MAN 1 KOTA SUKABUMI", layout="wide", page_icon="🏥")
@@ -37,47 +36,67 @@ df_pasien = load_csv("data_pasien.csv", ["Tanggal", "Nama", "Kelas", "Keluhan", 
 df_obat = load_csv("data_obat.csv", ["Obat", "Stok", "Satuan"])
 df_kegiatan = load_csv("data_kegiatan.csv", ["Tanggal", "Nama Kegiatan", "Lokasi", "Jumlah Peserta"])
 
-# --- 4. SISTEM LOGIN ---
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
+# --- 4. SISTEM LOGIN (ANTI-RELOAD) ---
+# Inisialisasi session state jika belum ada
+if 'auth_status' not in st.session_state:
+    st.session_state.auth_status = False
 
-if not st.session_state.logged_in:
+def login():
     _, col2, _ = st.columns([1, 1.2, 1])
     with col2:
-        try: st.image("logo_uks.png", width=100)
-        except: st.info("🏥 Logo UKS")
+        if os.path.exists("logo_uks.png"):
+            st.image("logo_uks.png", width=100)
         st.title("Login UKS")
         st.write("MAN 1 KOTA SUKABUMI")
-        u = st.text_input("Username")
-        p = st.text_input("Password", type="password")
+        user = st.text_input("Username")
+        pwd = st.text_input("Password", type="password")
         if st.button("Masuk"):
-            if u == "adminuks" and p == "uks12345":
-                st.session_state.logged_in = True
+            if user == "admin" and pwd == "uks123":
+                st.session_state.auth_status = True
                 st.rerun()
-            else: st.error("Akses Ditolak!")
+            else:
+                st.error("Username atau Password salah")
+
+def logout():
+    st.session_state.auth_status = False
+    st.rerun()
+
+# Cek status login
+if not st.session_state.auth_status:
+    login()
     st.stop()
 
 # --- 5. SIDEBAR ---
 with st.sidebar:
     col_side1, col_side2 = st.columns([1, 3])
     with col_side1:
-        try: st.image("logo_sekolah.png", width=50)
-        except: st.write("🏫")
+        if os.path.exists("logo_sekolah.png"):
+            st.image("logo_sekolah.png", width=50)
+        else:
+            st.write("🏫")
     with col_side2:
         st.markdown("**MAN 1 KOTA SUKABUMI**")
     
     st.divider()
     menu = st.radio("MENU UTAMA", ["📊 Dashboard", "🤒 Input Pasien", "📅 Laporan Kegiatan", "💊 Stok Obat"])
     st.divider()
-    if st.button("Keluar"):
-        st.session_state.logged_in = False
-        st.rerun()
+    if st.button("Keluar / Logout"):
+        logout()
 
-# --- 6. DASHBOARD ---
+# --- 6. HALAMAN DASHBOARD ---
 if menu == "📊 Dashboard":
-    st.markdown(f"""<div class="header-box"><img src="https://upload.wikimedia.org/wikipedia/commons/b/bd/Logo_UKS.png" width="70">
-    <div style="margin-left:20px;"><h2 style="margin:0;">SISTEM UKS DIGITAL</h2><p style="margin:0; color:#555;">MAN 1 KOTA SUKABUMI</p></div></div>""", unsafe_allow_html=True)
+    # Header dengan Logo PNG Lokal
+    col_h1, col_h2 = st.columns([1, 8])
+    with col_h1:
+        if os.path.exists("logo_uks.png"):
+            st.image("logo_uks.png", width=80)
+    with col_h2:
+        st.title("SISTEM INFORMASI UKS DIGITAL")
+        st.subheader("MAN 1 KOTA SUKABUMI")
+
+    st.divider()
     
+    # Metrik
     c1, c2, c3 = st.columns(3)
     c1.metric("Pasien Tercatat", len(df_pasien))
     c2.metric("Kegiatan UKS", len(df_kegiatan))
@@ -97,12 +116,13 @@ if menu == "📊 Dashboard":
     # TOMBOL DOWNLOAD BACKUP
     st.divider()
     st.subheader("📥 Backup Data (Download CSV)")
+    st.info("Klik tombol di bawah untuk mengamankan data ke komputer Anda.")
     d1, d2, d3 = st.columns(3)
     d1.download_button("Download Data Pasien", df_pasien.to_csv(index=False), "backup_pasien.csv", "text/csv")
     d2.download_button("Download Data Kegiatan", df_kegiatan.to_csv(index=False), "backup_kegiatan.csv", "text/csv")
     d3.download_button("Download Data Obat", df_obat.to_csv(index=False), "backup_obat.csv", "text/csv")
 
-# --- 7. INPUT PASIEN ---
+# --- 7. HALAMAN INPUT PASIEN ---
 elif menu == "🤒 Input Pasien":
     st.title("🤒 Input Pasien Baru")
     with st.form("form_pasien", clear_on_submit=True):
@@ -114,9 +134,10 @@ elif menu == "🤒 Input Pasien":
         o = st.selectbox("Obat", o_list)
         if st.form_submit_button("Simpan Data Pasien"):
             new_data = pd.DataFrame([[t, n, k, kl, o]], columns=df_pasien.columns)
-            pd.concat([df_pasien, new_data], ignore_index=True).to_csv("data_pasien.csv", index=False)
+            updated_df = pd.concat([df_pasien, new_data], ignore_index=True)
+            updated_df.to_csv("data_pasien.csv", index=False)
             st.success(f"Data {n} berhasil disimpan!")
-            st.balloons()
+            st.rerun() # Refresh data
 
 # --- 8. LAPORAN KEGIATAN ---
 elif menu == "📅 Laporan Kegiatan":
@@ -128,12 +149,13 @@ elif menu == "📅 Laporan Kegiatan":
         peserta = st.number_input("Jumlah Peserta", min_value=0)
         if st.form_submit_button("Simpan Laporan Kegiatan"):
             new_keg = pd.DataFrame([[tgl_k, nama_k, lokasi, peserta]], columns=df_kegiatan.columns)
-            pd.concat([df_kegiatan, new_keg], ignore_index=True).to_csv("data_kegiatan.csv", index=False)
+            updated_keg = pd.concat([df_kegiatan, new_keg], ignore_index=True)
+            updated_keg.to_csv("data_kegiatan.csv", index=False)
             st.success(f"Kegiatan '{nama_k}' berhasil dicatat!")
+            st.rerun() # Refresh data
 
 # --- 9. STOK OBAT ---
 else:
     st.title("💊 Inventaris Obat")
     st.dataframe(df_obat, use_container_width=True, hide_index=True)
-    with st.expander("Update Stok Obat"):
-        st.info("Untuk menambah/mengubah daftar obat, silakan download file CSV di Dashboard, edit di Excel, lalu upload kembali ke GitHub.")
+    st.info("Gunakan tombol Download di Dashboard untuk mengambil data stok obat.")
