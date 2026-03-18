@@ -14,12 +14,6 @@ st.markdown("""
     .stApp { background-color: #f8fafc; }
     
 
-/* Login Box Centering */
-    .login-container { display: flex; justify-content: center; align-items: center; padding-top: 50px; }
-    .login-box {
-        background: white; padding: 45px; border-radius: 28px; width: 420px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
-        border: 1px solid #e2e8f0; text-align: center;
     }
     
     /* Styling Input Login */
