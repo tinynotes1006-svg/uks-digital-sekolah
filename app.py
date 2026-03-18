@@ -80,6 +80,72 @@ else:
     st.sidebar.markdown("<h2 style='text-align:center;'>🏥 UKS DIGITAL</h2>", unsafe_allow_html=True)
     if os.path.exists("logo_uks.png"):
         st.sidebar.image("logo_uks.png")
+        if menu == "📊 Dashboard Utama":
+    st.markdown("<h2 class='main-header'>📊 DASHBOARD STATISTIK UKS</h2>", unsafe_allow_html=True)
+    
+    # Ambil Data dari Supabase
+    try:
+        res_p = conn.table("data_pasien").select("*").execute()
+        res_o = conn.table("stok_obat").select("*").execute()
+        res_k = conn.table("kegiatan_uks").select("*").execute()
+        
+        df_p = pd.DataFrame(res_p.data)
+        df_o = pd.DataFrame(res_o.data)
+        df_k = pd.DataFrame(res_k.data)
+
+        # --- BARIS 1: RINGKASAN ANGKA ---
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown("""
+                <div style='background-color: #e8f5e9; padding: 20px; border-radius: 10px; border-left: 5px solid #2e7d32;'>
+                    <h4 style='color: #2e7d32; margin:0;'>Total Pasien</h4>
+                    <h2 style='margin:0;'>{}</h2>
+                </div>
+            """.format(len(df_p)), unsafe_allow_html=True)
+            
+        with col2:
+            st.markdown("""
+                <div style='background-color: #fff3e0; padding: 20px; border-radius: 10px; border-left: 5px solid #ef6c00;'>
+                    <h4 style='color: #ef6c00; margin:0;'>Jenis Obat</h4>
+                    <h2 style='margin:0;'>{}</h2>
+                </div>
+            """.format(len(df_o)), unsafe_allow_html=True)
+
+        with col3:
+            st.markdown("""
+                <div style='background-color: #e3f2fd; padding: 20px; border-radius: 10px; border-left: 5px solid #1565c0;'>
+                    <h4 style='color: #1565c0; margin:0;'>Total Kegiatan</h4>
+                    <h2 style='margin:0;'>{}</h2>
+                </div>
+            """.format(len(df_k)), unsafe_allow_html=True)
+
+        st.markdown("---")
+
+        # --- BARIS 2: ANALISIS DETAIL ---
+        c_left, c_right = st.columns(2)
+        
+        with c_left:
+            st.subheader("⚠️ Stok Obat Hampir Habis")
+            # Filter obat yang jumlahnya di bawah 10
+            obat_kritis = df_o[df_o['jumlah'] <= 10]
+            if not obat_kritis.empty:
+                st.warning(f"Ada {len(obat_kritis)} obat yang harus segera dipesan!")
+                st.table(obat_kritis[['nama_obat', 'jumlah', 'satuan']])
+            else:
+                st.success("Semua stok obat masih aman.")
+
+        with c_right:
+            st.subheader("🕒 Kunjungan Terakhir")
+            if not df_p.empty:
+                # Ambil 5 data terbaru
+                recent_p = df_p.sort_values(by='waktu', ascending=False).head(5)
+                st.write(recent_p[['waktu', 'nama_siswa', 'keluhan']])
+            else:
+                st.info("Belum ada data kunjungan.")
+
+    except Exception as e:
+        st.error(f"Gagal memuat dashboard. Pastikan tabel di database sudah siap. Error: {e}")
         
     if menu == "Keluar":
         st.session_state.auth = False
