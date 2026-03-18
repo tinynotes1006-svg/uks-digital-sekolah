@@ -113,3 +113,49 @@ else:
                     if ns:
                         df_s = pd.concat([df_s, pd.DataFrame([[ns, ks]], columns=["nama_siswa", "kelas"])], ignore_index=True)
                         save_data(df_s, "siswa")
+                        st.success(f"Siswa {ns} ditambahkan!"); st.rerun()
+        with st.form("input_pasien", clear_on_submit=True):
+            f_kls = st.selectbox("Filter Kelas", get_list_kelas())
+            list_n = df_s[df_s['kelas'] == f_kls]['nama_siswa'].tolist()
+            f_nama = st.selectbox("Pilih Nama", sorted(list_n) if list_n else ["Data Kosong"])
+            f_kel = st.text_area("Keluhan"); f_tin = st.text_input("Tindakan")
+            if st.form_submit_button("Simpan Kunjungan"):
+                if f_nama != "Data Kosong" and f_kel:
+                    df = load_data("pasien", ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"])
+                    new_r = pd.DataFrame([[datetime.now().strftime("%Y-%m-%d %H:%M"), f_nama, f_kls, f_kel, f_tin]], columns=df.columns)
+                    save_data(pd.concat([df, new_r], ignore_index=True), "pasien")
+                    st.success("Tersimpan!"); st.balloons()
+                else: st.error("Isi data dengan lengkap!")
+
+    elif menu == "💊 Stok Obat":
+        st.markdown("<h1 class='main-header'>Stok Obat</h1>", unsafe_allow_html=True)
+        df_o = load_data("stok", ["Obat", "Stok", "Satuan"])
+        with st.form("stok_f", clear_on_submit=True):
+            o_n = st.text_input("Nama Obat"); o_s = st.number_input("Jumlah", min_value=0); o_u = st.selectbox("Satuan", ["Tablet", "Botol", "Pcs"])
+            if st.form_submit_button("Update Stok"):
+                if o_n:
+                    if o_n in df_o['Obat'].values: df_o.loc[df_o['Obat'] == o_n, ['Stok', 'Satuan']] = [o_s, o_u]
+                    else: df_o = pd.concat([df_o, pd.DataFrame([[o_n, o_s, o_u]], columns=df_o.columns)], ignore_index=True)
+                    save_data(df_o, "stok"); st.success("Stok diperbarui!")
+        st.dataframe(df_o, use_container_width=True)
+
+    elif menu == "📅 Kegiatan UKS":
+        st.markdown("<h1 class='main-header'>Kegiatan Besar</h1>", unsafe_allow_html=True)
+        with st.form("keg_f", clear_on_submit=True):
+            k_t = st.date_input("Tanggal"); k_n = st.text_input("Kegiatan"); k_p = st.number_input("Peserta", min_value=0); k_k = st.text_area("Keterangan")
+            if st.form_submit_button("Simpan Kegiatan"):
+                if k_n:
+                    df = load_data("kegiatan", ["Tanggal", "Kegiatan", "Peserta", "Keterangan"])
+                    save_data(pd.concat([df, pd.DataFrame([[str(k_t), k_n, k_p, k_k]], columns=df.columns)], ignore_index=True), "kegiatan")
+                    st.success("Kegiatan dicatat!")
+
+    elif menu == "📥 Ekspor Data":
+        st.markdown("<h1 class='main-header'>Ekspor Laporan</h1>", unsafe_allow_html=True)
+        for k in ["pasien", "stok", "kegiatan"]:
+            d = load_data(k, [])
+            if not d.empty:
+                st.download_button(f"📥 Download CSV {k.capitalize()}", d.to_csv(index=False), f"{k}.csv", "text/csv")
+                st.dataframe(d)
+
+st.markdown("---")
+st.caption("© 2026 MAN 1 Kota Sukabumi | UKS Digital System")
