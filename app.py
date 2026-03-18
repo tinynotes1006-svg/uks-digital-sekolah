@@ -6,7 +6,11 @@ import os
 
 st.set_page_config(page_title="UKS Digital MAN 1", layout="wide")
 conn = st.connection("supabase", type=SupabaseConnection)
-
+try:
+    conn = st.connection("supabase", type=SupabaseConnection)
+except Exception as e:
+    st.error("Koneksi Supabase Gagal! Periksa kembali URL dan Key di Secrets.")
+    st.stop()
 # --- FUNGSI HELPER ---
 def get_kelas_list():
     return [f"X-{chr(i)}" for i in range(ord('A'), ord('K'))] + \
