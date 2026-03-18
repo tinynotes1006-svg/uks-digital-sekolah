@@ -81,11 +81,21 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 2. KONEKSI KE SUPABASE (DENGAN PENANGANAN ERROR)
+# --- KONEKSI DATABASE (VERSI ANTI-GAGAL) ---
 try:
-    conn = st.connection("supabase", type=SupabaseConnection)
+    # Mengambil data langsung dari rahasia (Secrets)
+    s_url = st.secrets["connections"]["supabase"]["url"]
+    s_key = st.secrets["connections"]["supabase"]["key"]
+    
+    # Inisialisasi koneksi
+    conn = st.connection("supabase", 
+                         type=SupabaseConnection,
+                         url=s_url, 
+                         key=s_key)
 except Exception as e:
-    st.error("🚨 KONEKSI DATABASE GAGAL! Pastikan Secrets 'url' dan 'key' sudah diisi di Streamlit Cloud.")
+    st.error("🚨 KONEKSI DATABASE GAGAL!")
+    st.info(f"Pesan Error: {e}")
+    st.warning("Tips: Pastikan menu Secrets di Streamlit Cloud sudah diisi dengan format [connections.supabase]")
     st.stop()
 
 # 3. FUNGSI HELPER
