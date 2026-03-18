@@ -6,38 +6,32 @@ from datetime import datetime
 # 1. KONFIGURASI HALAMAN
 st.set_page_config(page_title="UKS Digital MAN 1", page_icon="🏥", layout="wide")
 
-# 2. CSS UNTUK TAMPILAN MODERN
+# 2. CSS CUSTOM UNTUK TAMPILAN MODERN
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
     html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
     .stApp { background-color: #f8fafc; }
     
-
+    /* Card Statisik */
+    .metric-card {
+        background: white; padding: 24px; border-radius: 20px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        border-bottom: 5px solid #10b981;
+        text-align: center;
     }
+    .metric-card h5 { color: #64748b; font-size: 0.9rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .metric-card h2 { color: #0f172a; font-size: 2.5rem; font-weight: 800; margin: 0; }
     
-    /* Styling Input Login */
-    .stTextInput input {
-        border-radius: 12px !important;
-        padding: 12px !important;
-        border: 1px solid #cbd5e1 !important
-    }
-    
-    /* Dashboard Header */
+    /* Header Dashboard */
     .main-header {
         background: linear-gradient(90deg, #059669, #10b981);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        font-weight: 800; font-size: 2.5rem; text-align: center;
+        font-weight: 800; font-size: 2.2rem; margin: 0;
     }
     
     /* Sidebar */
     [data-testid="stSidebar"] { background-color: #ffffff; border-right: 1px solid #e2e8f0; }
-    
-    /* Card */
-    .metric-card {
-        background: white; padding: 20px; border-radius: 16px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-top: 4px solid #10b981;
-    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -92,7 +86,7 @@ else:
     with st.sidebar:
         st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
         st.image("logo_sekolah.png", width=80) # Logo Sekolah Saja
-        st.markdown("<h4 style='color:#064e3b; margin-top:10px;'>UKS MAN 1 SUKABUMI</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#064e3b; margin-top:10px;'>MAN 1 KOTA SUKABUMI</h4>", unsafe_allow_html=True)
         st.markdown("</div>---", unsafe_allow_html=True)
         
         menu = st.radio("Pilih Layanan:", ["📊 Dashboard", "📝 Input Pasien", "💊 Stok Obat", "📅 Kegiatan UKS", "📥 Ekspor & Kelola"])
@@ -102,27 +96,77 @@ else:
             st.session_state.auth = False
             st.rerun()
 
-# 6. KONTEN HALAMAN
-    if menu == "📊 Dashboard":
-        # HEADER DASHBOARD (LOGO DI SAMPING TULISAN)
-        head_col1, head_col2 = st.columns([0.1, 0.9])
-        with head_col1:
-            st.image("logo_uks.png", width=65) # Logo di samping
-        with head_col2:
-            st.markdown("<h1 class='main-header'>Dashboard UKS Digital</h1>", unsafe_allow_html=True)
-        
-        st.markdown("<hr style='margin-top:0;'>", unsafe_allow_html=True)
-            
-        df_p = load_data("pasien", ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"])
-        df_o = load_data("stok", ["Obat", "Stok", "Satuan"])
-        
-        c1, c2, c3 = st.columns(3)
-        with c1: st.markdown(f'<div class="metric-card"><h5>Total Pasien</h5><h2>{len(df_p)}</h2></div>', unsafe_allow_html=True)
-        with c2: st.markdown(f'<div class="metric-card"><h5>Varian Obat</h5><h2>{len(df_o)}</h2></div>', unsafe_allow_html=True)
-        with c3: st.markdown(f'<div class="metric-card"><h5>Status</h5><h2 style="color:#10b981;">Online</h2></div>', unsafe_allow_html=True)
-        
-        st.markdown("### 🕒 Riwayat Kunjungan Terbaru")
-        st.dataframe(df_p.tail(10), use_container_width=True)
+# 4. SISTEM AUTH (Sederhana)
+if 'auth' not in st.session_state: st.session_state.auth = True # Set True untuk preview langsung
+
+# 5. SIDEBAR
+with st.sidebar:
+    st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
+    st.image("logo_sekolah.png", width=80) 
+    st.markdown("<h4 style='color:#064e3b; margin-top:10px;'>MAN 1 SUKABUMI</h4>", unsafe_allow_html=True)
+    st.markdown("</div>---", unsafe_allow_html=True)
+    menu = st.radio("Navigasi", ["📊 Dashboard Statistik", "📝 Registrasi Pasien", "💊 Inventaris Obat", "📅 Agenda Kegiatan"])
+
+# 6. HALAMAN DASHBOARD UTAMA
+if menu == "📊 Dashboard Statistik":
+    # Header dengan Logo Samping Judul
+    head_col1, head_col2 = st.columns([0.1, 0.9])
+    with head_col1: st.image("logo_uks.png", width=60)
+    with head_col2: st.markdown("<h1 class='main-header'>Dashboard UKS Digital</h1>", unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Load Data untuk Hitung Metrik
+    df_p = load_data("pasien", ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"])
+    df_o = load_data("stok", ["Obat", "Stok", "Satuan"])
+    df_k = load_data("kegiatan", ["Tanggal", "Kegiatan", "Peserta", "Keterangan"])
+    
+    # --- BARIS 1: TOTAL METRIK ---
+    m1, m2, m3, m4 = st.columns(4)
+    with m1:
+        st.markdown(f'<div class="metric-card"><h5>Total Kunjungan</h5><h2>{len(df_p)}</h2></div>', unsafe_allow_html=True)
+    with m2:
+        st.markdown(f'<div class="metric-card"><h5>Total Kegiatan</h5><h2>{len(df_k)}</h2></div>', unsafe_allow_html=True)
+    with m3:
+        st.markdown(f'<div class="metric-card"><h5>Jenis Obat</h5><h2>{len(df_o)}</h2></div>', unsafe_allow_html=True)
+    with m4:
+        st.markdown(f'<div class="metric-card"><h5>Status Sistem</h5><h2 style="color:#10b981; font-size:1.8rem;">ONLINE</h2></div>', unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # --- BARIS 2: STATISTIK & AGENDA ---
+    col_graph, col_agenda = st.columns([1.2, 0.8])
+    
+    with col_graph:
+        st.markdown("### 📈 Statistik Kunjungan Siswa")
+        if not df_p.empty:
+            # Mengolah data untuk grafik per tanggal
+            df_p['Waktu'] = pd.to_datetime(df_p['Waktu']).dt.date
+            chart_data = df_p.groupby('Waktu').size().reset_index(name='Jumlah')
+            st.area_chart(chart_data.set_index('Waktu'), color="#10b981")
+        else:
+            st.info("Belum ada data statistik untuk ditampilkan.")
+
+    with col_agenda:
+        st.markdown("### 📅 Agenda Kegiatan Terdekat")
+        if not df_k.empty:
+            # Tampilkan 5 kegiatan terbaru
+            df_k_view = df_k.sort_values(by="Tanggal", ascending=False).head(5)
+            for i, row in df_k_view.iterrows():
+                with st.container():
+                    st.markdown(f"""
+                    <div style="background:white; padding:15px; border-radius:12px; margin-bottom:10px; border-left:4px solid #059669;">
+                        <small style="color:#64748b;">{row['Tanggal']}</small><br>
+                        <strong style="color:#0f172a;">{row['Kegiatan']}</strong><br>
+                        <small style="color:#10b981;">{row['Peserta']} Peserta</small>
+                    </div>
+                    """, unsafe_allow_html=True)
+        else:
+            st.write("Tidak ada agenda kegiatan.")
+
+    # --- BARIS 3: TABEL DETAIL ---
+    st.markdown("### 🕒 Riwayat Kunjungan Terakhir")
+    st.dataframe(df_p.tail(10), use_container_width=True)
 
     elif menu == "📝 Input Pasien":
         st.markdown("<h1 class='main-header'>Catat Kunjungan</h1>", unsafe_allow_html=True)
