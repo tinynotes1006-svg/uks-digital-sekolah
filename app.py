@@ -75,14 +75,12 @@ if not st.session_state.auth:
                 st.error("Username atau Password Salah!")
 else:
     # 5. SIDEBAR NAVIGASI
+    menu = st.sidebar.radio("NAVIGASI UTAMA:", 
+    ["📊 Dashboard Utama", "📝 Input Pasien Harian", "💊 Stok Obat", "📅 Kegiatan Besar UKS", "📊 Pusat Laporan", "Keluar"])
     st.sidebar.markdown("<h2 style='text-align:center;'>🏥 UKS DIGITAL</h2>", unsafe_allow_html=True)
     if os.path.exists("logo_uks.png"):
         st.sidebar.image("logo_uks.png")
-    
-    st.sidebar.markdown("---")
-    menu = st.sidebar.radio("NAVIGASI UTAMA:", 
-        ["📝 Input Pasien Harian", "💊 Stok Obat", "📅 Kegiatan Besar UKS", "📊 Pusat Laporan", "Keluar"])
-    
+        
     if menu == "Keluar":
         st.session_state.auth = False
         st.rerun()
