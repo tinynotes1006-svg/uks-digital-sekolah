@@ -14,7 +14,7 @@ st.markdown("""
     .stApp { background-color: #f8fafc; }
     
     /* Login Box */
-    .login-container { display: flex; justify-content: center; align-items: center; padding-top: 50px; }
+    .login-container { display: flex; justify-content: center; align-items: center; padding-top: 100px; }
     .login-box {
         background: white; padding: 40px; border-radius: 24px; width: 450px;
         box-shadow: 0 20px 25px -10px rgba(0, 0, 0, 0.1);
