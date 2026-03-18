@@ -62,8 +62,8 @@ if not st.session_state.auth:
     with col_log:
         st.markdown('<div class="login-box">', unsafe_allow_html=True)
         c_img1, c_img2 = st.columns(2)
-        with c_img1: st.image("logo_sekolah.png", width=100)
-        with c_img2: st.image("logo_uks.png", width=100)
+        with c_img1: st.image("logo_sekolah.png", width=150)
+        with c_img2: st.image("logo_uks.png", width=150)
         st.markdown("<h2 style='color:#064e3b; margin-top:15px;'>UKS MAN 1 KOTA SUKABUMI</h2>", unsafe_allow_html=True)
         st.markdown("<p style='color:#64748b; margin-bottom:25px;'>Sistem Manajemen UKS Digital</p>", unsafe_allow_html=True)
         user = st.text_input("Username", placeholder="Username", label_visibility="collapsed")
