@@ -92,7 +92,7 @@ else:
     with st.sidebar:
         st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
         st.image("logo_sekolah.png", width=80) # Logo Sekolah Saja
-        st.markdown("<h4 style='color:#064e3b; margin-top:10px;'>MAN 1 SUKABUMI</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#064e3b; margin-top:10px;'>UKS MAN 1 SUKABUMI</h4>", unsafe_allow_html=True)
         st.markdown("</div>---", unsafe_allow_html=True)
         
         menu = st.radio("Pilih Layanan:", ["📊 Dashboard", "📝 Input Pasien", "💊 Stok Obat", "📅 Kegiatan UKS", "📥 Ekspor & Kelola"])
@@ -102,20 +102,20 @@ else:
             st.session_state.auth = False
             st.rerun()
 
-    # 6. KONTEN HALAMAN
+# 6. KONTEN HALAMAN
     if menu == "📊 Dashboard":
-        # HEADER DASHBOARD DENGAN LOGO UKS
-        col_dash1, col_dash2, col_dash3 = st.columns([1, 3, 1])
-        with col_dash2:
-            st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
-            st.image("logo_uks.png", width=80) # Logo UKS Pindah ke Sini
+        # HEADER DASHBOARD (LOGO DI SAMPING TULISAN)
+        head_col1, head_col2 = st.columns([0.1, 0.9])
+        with head_col1:
+            st.image("logo_uks.png", width=65) # Logo di samping
+        with head_col2:
             st.markdown("<h1 class='main-header'>Dashboard UKS Digital</h1>", unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+        
+        st.markdown("<hr style='margin-top:0;'>", unsafe_allow_html=True)
             
         df_p = load_data("pasien", ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"])
         df_o = load_data("stok", ["Obat", "Stok", "Satuan"])
         
-        st.write("---")
         c1, c2, c3 = st.columns(3)
         with c1: st.markdown(f'<div class="metric-card"><h5>Total Pasien</h5><h2>{len(df_p)}</h2></div>', unsafe_allow_html=True)
         with c2: st.markdown(f'<div class="metric-card"><h5>Varian Obat</h5><h2>{len(df_o)}</h2></div>', unsafe_allow_html=True)
