@@ -55,10 +55,10 @@ if not st.session_state.auth:
         st.markdown('<div class="login-box">', unsafe_allow_html=True)
         st.image("logo_uks.png", width=120) 
         st.markdown("<h2 style='color:#064e3b;'>MAN 1 KOTA SUKABUMI</h2>", unsafe_allow_html=True)
-        user = st.text_input("Username", placeholder="adminuks")
-        pw = st.text_input("Password", type="password")
+        user = st.text_input("Username", placeholder="Username")
+        pw = st.text_input("Password", type="password", placeholder="password")
         if st.button("MASUK", use_container_width=True):
-            if user == "adminuks" and pw == "man1sukabumi":
+            if user == "adminuks" and pw == "123":
                 st.session_state.auth = True
                 st.rerun()
             else: st.error("Salah!")
@@ -69,7 +69,7 @@ else:
     with st.sidebar:
         st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
         st.image("logo_sekolah.png", width=85) 
-        st.markdown("<h4>MAN 1 SUKABUMI</h4></div>", unsafe_allow_html=True)
+        st.markdown("<h4>MAN 1 KOTA SUKABUMI</h4></div>", unsafe_allow_html=True)
         menu = st.radio("Menu:", ["📊 Dashboard", "📝 Input Pasien", "💊 Stok Obat", "📅 Kegiatan", "📥 Kelola Data"])
         if st.button("🚪 Keluar"):
             st.session_state.auth = False
@@ -78,7 +78,7 @@ else:
     # 6. KONTEN (PASTIKAN INDENTASI DI SINI SAMA)
     if menu == "📊 Dashboard":
         h_c1, h_c2 = st.columns([0.1, 0.9])
-        with h_c1: st.image("logo_uks.png", width=60)
+        with h_c1: st.image("logo_uks.png", width=100)
         with h_c2: st.markdown("<h1 class='main-header'>Dashboard UKS Digital</h1>", unsafe_allow_html=True)
         
         df_p = load_data("pasien", ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"])
