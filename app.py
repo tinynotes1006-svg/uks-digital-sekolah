@@ -81,8 +81,11 @@ else:
     # --- FITUR 1: INPUT PASIEN HARIAN ---
     if menu == "📝 Input Pasien Harian":
         st.markdown("<h2 style='color:#2e7d32;'>📝 Form Kunjungan Siswa</h2>", unsafe_allow_html=True)
-        res_siswa = conn.table("master_siswa").select("*").execute()
-        df_siswa = pd.DataFrame(res_siswa.data)
+        try:
+            res_siswa = conn.table("master_siswa").select("*").execute()
+            df_siswa = pd.DataFrame(res_siswa.data)
+        except:
+            df_siswa = pd.DataFrame(columns=['nama_siswa', 'kelas'])
         
         col_p1, col_p2 = st.columns(2)
         with col_p1:
@@ -125,11 +128,61 @@ else:
                     st.error("Nama obat kosong.")
 
         st.subheader("📋 Daftar Inventaris Obat")
-        res_stok = conn.table("stok_obat").select("*").execute()
-        st.dataframe(pd.DataFrame(res_stok.data), use_container_width=True)
+        try:
+            res_stok = conn.table("stok_obat").select("*").execute()
+            st.dataframe(pd.DataFrame(res_stok.data), use_container_width=True)
+        except:
+            st.info("Belum ada data stok obat.")
 
     # --- FITUR 3: KEGIATAN BESAR UKS (Donor Darah, dll) ---
     elif menu == "📅 Kegiatan Besar UKS":
         st.markdown("<h2 style='color:#2e7d32;'>📅 Laporan Kegiatan Khusus</h2>", unsafe_allow_html=True)
         with st.form("form_event", clear_on_submit=True):
-            tgl_keg = st.
+            tgl_keg = st.date_input("Tanggal Pelaksanaan:")
+            nama_keg = st.text_input("Nama Kegiatan:")
+            lokasi_keg = st.text_input("Lokasi:")
+            peserta_keg = st.number_input("Jumlah Peserta:", min_value=0)
+            ket_keg = st.text_area("Keterangan / Hasil:")
+            if st.form_submit_button("CATAT KEGIATAN"):
+                if nama_keg:
+                    data_event = {
+                        "tanggal": str(tgl_keg),
+                        "nama_kegiatan": nama_keg,
+                        "lokasi": lokasi_keg,
+                        "jumlah_peserta": peserta_keg,
+                        "keterangan": ket_keg
+                    }
+                    conn.table("kegiatan_uks").insert(data_event).execute()
+                    st.success("✅ Kegiatan berhasil dicatat!")
+                else:
+                    st.error("Nama kegiatan wajib diisi!")
+
+    # --- FITUR 4: PUSAT LAPORAN ---
+    elif menu == "📊 Pusat Laporan":
+        st.markdown("<h2 style='color:#2e7d32;'>📊 Pusat Laporan Digital</h2>", unsafe_allow_html=True)
+        t1, t2 = st.tabs(["Riwayat Pasien", "Riwayat Kegiatan"])
+        with t1:
+            try:
+                rp = conn.table("data_pasien").select("*").order("waktu", desc=True).execute()
+                dfp = pd.DataFrame(rp.data)
+                if not dfp.empty:
+                    st.download_button("📥 Download CSV Pasien", dfp.to_csv(index=False), "pasien.csv")
+                    st.dataframe(dfp, use_container_width=True)
+                else:
+                    st.info("Belum ada data pasien.")
+            except:
+                st.error("Gagal mengambil data pasien.")
+        with t2:
+            try:
+                rk = conn.table("kegiatan_uks").select("*").order("tanggal", desc=True).execute()
+                dfk = pd.DataFrame(rk.data)
+                if not dfk.empty:
+                    st.download_button("📥 Download CSV Kegiatan", dfk.to_csv(index=False), "kegiatan.csv")
+                    st.dataframe(dfk, use_container_width=True)
+                else:
+                    st.info("Belum ada data kegiatan.")
+            except:
+                st.error("Gagal mengambil data kegiatan.")
+
+st.markdown("---")
+st.caption("© 2026 UKS Digital MAN 1 Kota Sukabumi")
