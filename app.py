@@ -100,7 +100,7 @@ else:
     elif menu == "📝 Input Pasien":
         st.markdown("<h1 class='main-header'>Input Pasien</h1>", unsafe_allow_html=True)
         df_s = load_data("siswa", ["nama_siswa", "kelas"])
-        with st.expander("Tambah Data Siswa"):
+        with st.expander("➕Tambah Data Siswa"):
             with st.form("f_s"):
                 ns = st.text_input("Nama"); ks = st.selectbox("Kelas", get_list_kelas())
                 if st.form_submit_button("Simpan"):
