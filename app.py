@@ -55,7 +55,7 @@ st.markdown("""
         display: block;
         margin-left: auto;
         margin-right: auto;
-        max-width: 150px; /* Ukuran Logo UKS di Login Diperkecil */
+        max-width: 50px; /* Ukuran Logo UKS di Login Diperkecil */
         margin-bottom: 20px;
     }
     
@@ -111,25 +111,24 @@ if 'auth' not in st.session_state:
     st.session_state.auth = False
 
 if not st.session_state.auth:
-    # HALAMAN LOGIN DENGAN LOGO KECIL DAN NAMA SEKOLAH
-    st.markdown("<div class='sekolah-name-login'>MAN 1 Kota Sukabumi</div>", unsafe_allow_html=True)
-    st.markdown("<div class='sekolah-sub-login'>🏥 SISTEM UKS DIGITAL</div>", unsafe_allow_html=True)
-    
+    # 4. SISTEM LOGIN
+if 'auth' not in st.session_state:
+    st.session_state.auth = False
+
+if not st.session_state.auth:
+    st.markdown("<h1 class='main-header'>LOGIN UKS DIGITAL MAN 1</h1>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1,2,1])
     with col2:
         if os.path.exists("logo_uks.png"): 
-            # Menampilkan logo UKS diperkecil menggunakan HTML & CSS class
-            st.markdown(f'<img src="data:image/png;base64,{st.image("logo_uks.png", output_format="PNG").base64}" class="login-logo">', unsafe_allow_html=True)
-        
-        with st.container():
-            u = st.text_input("Username", placeholder="adminuks")
-            p = st.text_input("Password", type="password", placeholder="man1sukabumi")
-            if st.button("MASUK KE SISTEM"):
-                if u == "adminuks" and p == "man1sukabumi":
-                    st.session_state.auth = True
-                    st.rerun()
-                else:
-                    st.error("Username atau Password Salah!")
+            st.image("logo_uks.png", use_container_width=True)
+        u = st.text_input("Username")
+        p = st.text_input("Password", type="password")
+        if st.button("MASUK KE SISTEM"):
+            if u == "adminuks" and p == "man1sukabumi":
+                st.session_state.auth = True
+                st.rerun()
+            else:
+                st.error("Username atau Password Salah!")
 else:
     # 5. SIDEBAR NAVIGASI DENGAN LOGO SEKOLAH & NAMA
     st.sidebar.markdown(f"<h3 style='text-align:center;'>🏥 UKS DIGITAL</h3>", unsafe_allow_html=True)
