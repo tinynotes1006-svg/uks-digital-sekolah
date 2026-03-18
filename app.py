@@ -124,7 +124,7 @@ else:
         st.markdown("<h1 class='main-header'>Stok Obat</h1>", unsafe_allow_html=True)
         df_o = load_data("stok", ["Obat", "Stok", "Satuan"])
         with st.form("f_o"):
-            o_n = st.text_input("Obat"); o_s = st.number_input("Jumlah", 0); o_u = st.selectbox("Satuan", ["Tablet", "Pcs"])
+            o_n = st.text_input("Obat"); o_s = st.number_input("Jumlah", 0); o_u = st.selectbox("Satuan", ["Tablet", "Strip", "Pcs", "Botol", "Tube", "Sachet", "Kapsul", "Kaplet", "Pot", "Box", "Blister", "mL", "Unit"])
             if st.form_submit_button("Update"):
                 df_o = pd.concat([df_o, pd.DataFrame([[o_n, o_s, o_u]], columns=df_o.columns)], ignore_index=True)
                 save_data(df_o, "stok"); st.rerun()
