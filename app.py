@@ -148,4 +148,4 @@ else:
                 st.dataframe(d)
 
 st.markdown("---")
-st.caption("© 2026 MAN 1 Kota Sukabumi")
+st.caption("© 2026 UKS MAN 1 Kota Sukabumi")
