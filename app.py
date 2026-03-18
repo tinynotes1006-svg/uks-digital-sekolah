@@ -6,42 +6,49 @@ from datetime import datetime
 # 1. KONFIGURASI HALAMAN
 st.set_page_config(page_title="UKS Digital MAN 1", page_icon="🏥", layout="wide")
 
-# 2. CUSTOM CSS MODERN
+# 2. CSS UNTUK TAMPILAN MODERN & SIMETRIS
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
     html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
     .stApp { background-color: #f8fafc; }
+    
+    /* Login Card Simetris */
+    .login-container {
+        display: flex; justify-content: center; align-items: center; padding-top: 50px;
+    }
     .login-box {
-        background: white; padding: 40px; border-radius: 24px;
+        background: white; padding: 40px; border-radius: 24px; width: 450px;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         border: 1px solid #e2e8f0; text-align: center;
     }
+    
+    /* Centering Image & Content */
+    .center-content { display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px; }
+    
+    /* Header & Sidebar */
     .main-header {
         background: linear-gradient(90deg, #059669, #10b981);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         font-weight: 800; font-size: 2.2rem; text-align: center; margin-bottom: 25px;
     }
     [data-testid="stSidebar"] { background-color: #ffffff; border-right: 1px solid #e2e8f0; }
+    
+    /* Custom Table & Metric */
     .metric-card {
         background: white; padding: 20px; border-radius: 16px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-top: 4px solid #10b981;
     }
-    div.stButton > button:first-child { border-radius: 12px; font-weight: 600; }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. SISTEM DATABASE CSV
-FILES = {
-    "pasien": "data_pasien.csv",
-    "stok": "data_stok.csv",
-    "kegiatan": "data_kegiatan.csv",
-    "siswa": "db_siswa.csv"
-}
+# 3. FUNGSI DATABASE CSV (Murni Tanpa API Database)
+FILES = {"pasien": "data_pasien.csv", "stok": "data_stok.csv", "kegiatan": "data_kegiatan.csv", "siswa": "db_siswa.csv"}
 
 def load_data(key, cols):
     if os.path.exists(FILES[key]):
-        return pd.read_csv(FILES[key])
+        try: return pd.read_csv(FILES[key])
+        except: return pd.DataFrame(columns=cols)
     return pd.DataFrame(columns=cols)
 
 def save_data(df, key):
@@ -58,39 +65,49 @@ if 'auth' not in st.session_state:
     st.session_state.auth = False
 
 if not st.session_state.auth:
-    _, col_log, _ = st.columns([1, 1.8, 1])
+    st.markdown('<div class="login-container">', unsafe_allow_html=True)
+    _, col_log, _ = st.columns([1, 1.2, 1])
     with col_log:
-        st.write("###")
         st.markdown('<div class="login-box">', unsafe_allow_html=True)
-        l1, l2 = st.columns(2)
-        with l1: st.image("logo_sekolah.png", width=70)
-        with l2: st.image("logo_uks.png", width=70)
+        # Menampilkan Logo Sekolah & UKS secara sejajar dan simetris
+        col_img1, col_img2 = st.columns(2)
+        with col_img1: st.image("logo_sekolah.png", width=100)
+        with col_img2: st.image("logo_uks.png", width=100)
+        
         st.markdown("<h2 style='color:#064e3b; margin-top:10px;'>MAN 1 KOTA SUKABUMI</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='color:#64748b; margin-bottom:25px;'>Sistem Manajemen UKS Digital</p>", unsafe_allow_html=True)
-        user = st.text_input("Username", placeholder="adminuks")
-        pw = st.text_input("Password", type="password", placeholder="man1sukabumi")
+        st.markdown("<p style='color:#64748b; margin-bottom:20px;'>Sistem Manajemen UKS Digital</p>", unsafe_allow_html=True)
+        
+        user = st.text_input("Username", placeholder="adminuks", label_visibility="collapsed")
+        pw = st.text_input("Password", type="password", placeholder="man1sukabumi", label_visibility="collapsed")
+        
         if st.button("Masuk ke Sistem", use_container_width=True):
             if user == "adminuks" and pw == "man1sukabumi":
                 st.session_state.auth = True
                 st.rerun()
             else:
-                st.error("Username atau Password salah.")
+                st.error("Login Gagal")
         st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
 else:
-    # 5. SIDEBAR
+    # 5. SIDEBAR DENGAN LOGO SEKOLAH
     with st.sidebar:
+        # Logo Sekolah dan UKS di Menu Utama (Sidebar)
         st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
-        st.image("logo_uks.png", width=80)
-        st.markdown("<h3 style='color:#064e3b;'>MENU UKS</h3></div>", unsafe_allow_html=True)
-        st.markdown("---")
-        menu = st.radio("Navigasi Utama:", ["📊 Dashboard", "📝 Input Pasien", "💊 Stok Obat", "📅 Kegiatan UKS", "📥 Ekspor Data"])
-        st.markdown("<div style='height: 15vh;'></div>", unsafe_allow_html=True)
-        st.markdown("---")
+        col_side1, col_side2 = st.columns(2)
+        with col_side1: st.image("logo_sekolah.png", width=60)
+        with col_side2: st.image("logo_uks.png", width=60)
+        st.markdown("<h3 style='color:#064e3b; margin-top:10px;'>MAN 1 SUKABUMI</h3>", unsafe_allow_html=True)
+        st.markdown("</div>---", unsafe_allow_html=True)
+        
+        menu = st.radio("Menu Navigasi:", ["📊 Dashboard", "📝 Input Pasien", "💊 Stok Obat", "📅 Kegiatan UKS", "📥 Ekspor & Hapus"])
+        
+        st.markdown("<div style='height: 15vh;'></div>---", unsafe_allow_html=True)
         if st.button("🚪 Keluar Sistem", use_container_width=True):
             st.session_state.auth = False
             st.rerun()
 
-    # 6. KONTEN
+    # 6. KONTEN HALAMAN (Sama seperti sebelumnya namun lebih rapi)
     if menu == "📊 Dashboard":
         st.markdown("<h1 class='main-header'>Dashboard UKS Digital</h1>", unsafe_allow_html=True)
         df_p = load_data("pasien", ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"])
@@ -99,7 +116,7 @@ else:
         with c1: st.markdown(f'<div class="metric-card"><h5>Total Pasien</h5><h2>{len(df_p)}</h2></div>', unsafe_allow_html=True)
         with c2: st.markdown(f'<div class="metric-card"><h5>Varian Obat</h5><h2>{len(df_o)}</h2></div>', unsafe_allow_html=True)
         with c3: st.markdown(f'<div class="metric-card"><h5>Status</h5><h2 style="color:#10b981;">Aktif</h2></div>', unsafe_allow_html=True)
-        st.markdown("### 🕒 Riwayat Kunjungan")
+        st.markdown("### 🕒 Riwayat Kunjungan Terbaru")
         st.dataframe(df_p.tail(10), use_container_width=True)
 
     elif menu == "📝 Input Pasien":
@@ -108,24 +125,22 @@ else:
         with st.expander("➕ Tambah Master Data Siswa"):
             with st.form("add_siswa", clear_on_submit=True):
                 ns = st.text_input("Nama Siswa")
-                ks = st.selectbox("Kelas", get_list_kelas(), key="kls_add")
+                ks = st.selectbox("Kelas", get_list_kelas())
                 if st.form_submit_button("Simpan Siswa"):
                     if ns:
                         df_s = pd.concat([df_s, pd.DataFrame([[ns, ks]], columns=["nama_siswa", "kelas"])], ignore_index=True)
-                        save_data(df_s, "siswa")
-                        st.success(f"Siswa {ns} ditambahkan!"); st.rerun()
-        with st.form("input_pasien", clear_on_submit=True):
-            f_kls = st.selectbox("Filter Kelas", get_list_kelas())
-            list_n = df_s[df_s['kelas'] == f_kls]['nama_siswa'].tolist()
-            f_nama = st.selectbox("Pilih Nama", sorted(list_n) if list_n else ["Data Kosong"])
-            f_kel = st.text_area("Keluhan"); f_tin = st.text_input("Tindakan")
+                        save_data(df_s, "siswa"); st.success("Siswa ditambahkan!"); st.rerun()
+        
+        with st.form("input_p", clear_on_submit=True):
+            kls = st.selectbox("Filter Kelas", get_list_kelas())
+            list_n = df_s[df_s['kelas'] == kls]['nama_siswa'].tolist()
+            nama = st.selectbox("Pilih Nama", sorted(list_n) if list_n else ["Data Kosong"])
+            kel = st.text_area("Keluhan"); tin = st.text_input("Tindakan")
             if st.form_submit_button("Simpan Kunjungan"):
-                if f_nama != "Data Kosong" and f_kel:
+                if nama != "Data Kosong" and kel:
                     df = load_data("pasien", ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"])
-                    new_r = pd.DataFrame([[datetime.now().strftime("%Y-%m-%d %H:%M"), f_nama, f_kls, f_kel, f_tin]], columns=df.columns)
-                    save_data(pd.concat([df, new_r], ignore_index=True), "pasien")
-                    st.success("Tersimpan!"); st.balloons()
-                else: st.error("Isi data dengan lengkap!")
+                    new_r = pd.DataFrame([[datetime.now().strftime("%Y-%m-%d %H:%M"), nama, kls, kel, tin]], columns=df.columns)
+                    save_data(pd.concat([df, new_r], ignore_index=True), "pasien"); st.success("Berhasil Disimpan!")
 
     elif menu == "💊 Stok Obat":
         st.markdown("<h1 class='main-header'>Stok Obat</h1>", unsafe_allow_html=True)
@@ -146,16 +161,20 @@ else:
             if st.form_submit_button("Simpan Kegiatan"):
                 if k_n:
                     df = load_data("kegiatan", ["Tanggal", "Kegiatan", "Peserta", "Keterangan"])
-                    save_data(pd.concat([df, pd.DataFrame([[str(k_t), k_n, k_p, k_k]], columns=df.columns)], ignore_index=True), "kegiatan")
-                    st.success("Kegiatan dicatat!")
+                    save_data(pd.concat([df, pd.DataFrame([[str(k_t), k_n, k_p, k_k]], columns=df.columns)], ignore_index=True), "kegiatan"); st.success("Kegiatan dicatat!")
 
-    elif menu == "📥 Ekspor Data":
-        st.markdown("<h1 class='main-header'>Ekspor Laporan</h1>", unsafe_allow_html=True)
-        for k in ["pasien", "stok", "kegiatan"]:
+    elif menu == "📥 Ekspor & Hapus":
+        st.markdown("<h1 class='main-header'>Kelola Data</h1>", unsafe_allow_html=True)
+        for k in ["pasien", "stok", "kegiatan", "siswa"]:
             d = load_data(k, [])
             if not d.empty:
-                st.download_button(f"📥 Download CSV {k.capitalize()}", d.to_csv(index=False), f"{k}.csv", "text/csv")
-                st.dataframe(d)
+                with st.expander(f"Kelola {k.capitalize()}"):
+                    st.download_button(f"📥 Download CSV {k}", d.to_csv(index=False), f"{k}.csv", "text/csv")
+                    row = st.selectbox(f"Pilih baris {k} untuk dihapus", d.index, key=f"del_{k}")
+                    if st.button(f"🗑️ Hapus {k}", key=f"btn_{k}"):
+                        d = d.drop(row).reset_index(drop=True)
+                        save_data(d, k); st.success("Terhapus!"); st.rerun()
+                    st.dataframe(d, use_container_width=True)
 
 st.markdown("---")
 st.caption("© 2026 MAN 1 Kota Sukabumi | UKS Digital System")
