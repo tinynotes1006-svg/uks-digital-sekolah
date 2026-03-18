@@ -14,6 +14,19 @@ st.markdown("""
     .stApp { background-color: #f8fafc; }
     
 
+/* Login Box Centering */
+    .login-container { display: flex; justify-content: center; align-items: center; padding-top: 50px; }
+    .login-box {
+        background: white; padding: 45px; border-radius: 28px; width: 420px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0; text-align: center;
+    }
+    
+    /* Styling Input Login */
+    .stTextInput input {
+        border-radius: 12px !important;
+        padding: 12px !important;
+        border: 1px solid #cbd5e1 !important
     }
     
     /* Dashboard Header */
@@ -61,18 +74,22 @@ if not st.session_state.auth:
     _, col_log, _ = st.columns([1, 1.2, 1])
     with col_log:
         st.markdown('<div class="login-box">', unsafe_allow_html=True)
-        c_img1, c_img2 = st.columns(2)
-        with c_img1: st.image("logo_sekolah.png", width=150)
-        with c_img2: st.image("logo_uks.png", width=150)
-        st.markdown("<h2 style='color:#064e3b; margin-top:15px;'>UKS MAN 1 KOTA SUKABUMI</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='color:#64748b; margin-bottom:25px;'>Sistem Manajemen UKS Digital</p>", unsafe_allow_html=True)
-        user = st.text_input("Username", placeholder="Username", label_visibility="collapsed")
-        pw = st.text_input("Password", type="password", placeholder="password", label_visibility="collapsed")
-        if st.button("Masuk ke Sistem", use_container_width=True):
-            if user == "adminuks" and pw == "123uks":
+        
+        # LOGO UKS DI TENAH (CENTERED)
+        st.image("logo_uks.png", width=120) 
+        
+        st.markdown("<h2 style='color:#064e3b; margin-top:20px; margin-bottom:0;'>MAN 1 KOTA SUKABUMI</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='color:#64748b; margin-bottom:30px; font-weight:500;'>Sistem Manajemen UKS Digital</p>", unsafe_allow_html=True)
+        
+        user = st.text_input("Username", placeholder="Username Admin", label_visibility="collapsed")
+        pw = st.text_input("Password", type="password", placeholder="Password", label_visibility="collapsed")
+        
+        st.write("") # Spasi tambahan
+        if st.button("MASUK KE SISTEM", use_container_width=True):
+            if user == "adminuks" and pw == "123":
                 st.session_state.auth = True
                 st.rerun()
-            else: st.error("Login Gagal")
+            else: st.error("Akses Ditolak: Periksa Kembali Credential Anda.")
         st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
