@@ -13,9 +13,7 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
     .stApp { background-color: #f8fafc; }
     .metric-card {
-        background: white; padding: 24px; border-radius: 20px;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-        border-bottom: 5px solid #10b981; text-align: center;
+
     }
     .main-header {
         background: linear-gradient(90deg, #059669, #10b981);
