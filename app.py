@@ -13,6 +13,9 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
     .stApp { background-color: #f8fafc; }
     .metric-card {
+    background: white; padding: 24px; border-radius: 20px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        border-bottom: 5px solid #10b981; text-align: center;
 
     }
     .main-header {
@@ -20,11 +23,7 @@ st.markdown("""
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         font-weight: 800; font-size: 2.3rem; margin: 0;
     }
-    .login-box {
-        background: white; padding: 45px; border-radius: 28px; width: 420px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
-        border: 1px solid #e2e8f0; text-align: center;
-    }
+   
     </style>
     """, unsafe_allow_html=True)
 
