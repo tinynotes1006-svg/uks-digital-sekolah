@@ -16,7 +16,7 @@ st.markdown("""
     /* Login Box */
     .login-container { display: flex; justify-content: center; align-items: center; padding-top: 40px; }
     .login-box {
-        background: white; padding: 100px; border-radius: 24px; width: 450px;
+        background: white; padding: 40px; border-radius: 50px; width: 450px;
         box-shadow: 0 20px 25px -10px rgba(0, 0, 0, 0.1);
         border: 1px solid #e2e8f0; text-align: center;
     }
