@@ -13,7 +13,7 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
     .stApp { background-color: #f8fafc; }
     
-    /* Login Card Simetris */
+    /* Login Box Centering */
     .login-container {
         display: flex; justify-content: center; align-items: center; padding-top: 50px;
     }
@@ -23,18 +23,17 @@ st.markdown("""
         border: 1px solid #e2e8f0; text-align: center;
     }
     
-    /* Centering Image & Content */
-    .center-content { display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px; }
-    
-    /* Header & Sidebar */
+    /* Header Gradient */
     .main-header {
         background: linear-gradient(90deg, #059669, #10b981);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         font-weight: 800; font-size: 2.2rem; text-align: center; margin-bottom: 25px;
     }
+    
+    /* Sidebar Styling */
     [data-testid="stSidebar"] { background-color: #ffffff; border-right: 1px solid #e2e8f0; }
     
-    /* Custom Table & Metric */
+    /* Metric Card */
     .metric-card {
         background: white; padding: 20px; border-radius: 16px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-top: 4px solid #10b981;
@@ -42,7 +41,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 3. FUNGSI DATABASE CSV (Murni Tanpa API Database)
+# 3. FUNGSI DATABASE CSV
 FILES = {"pasien": "data_pasien.csv", "stok": "data_stok.csv", "kegiatan": "data_kegiatan.csv", "siswa": "db_siswa.csv"}
 
 def load_data(key, cols):
@@ -69,13 +68,14 @@ if not st.session_state.auth:
     _, col_log, _ = st.columns([1, 1.2, 1])
     with col_log:
         st.markdown('<div class="login-box">', unsafe_allow_html=True)
-        # Menampilkan Logo Sekolah & UKS secara sejajar dan simetris
-        col_img1, col_img2 = st.columns(2)
-        with col_img1: st.image("logo_sekolah.png", width=100)
-        with col_img2: st.image("logo_uks.png", width=100)
         
-        st.markdown("<h2 style='color:#064e3b; margin-top:10px;'>MAN 1 KOTA SUKABUMI</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='color:#64748b; margin-bottom:20px;'>Sistem Manajemen UKS Digital</p>", unsafe_allow_html=True)
+        # LOGO HALAMAN LOGIN (UKURAN 100px - SIMETRIS)
+        c_img1, c_img2 = st.columns(2)
+        with c_img1: st.image("logo_sekolah.png", width=100)
+        with c_img2: st.image("logo_uks.png", width=100)
+        
+        st.markdown("<h2 style='color:#064e3b; margin-top:15px;'>MAN 1 KOTA SUKABUMI</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='color:#64748b; margin-bottom:25px;'>Sistem Manajemen UKS Digital</p>", unsafe_allow_html=True)
         
         user = st.text_input("Username", placeholder="adminuks", label_visibility="collapsed")
         pw = st.text_input("Password", type="password", placeholder="man1sukabumi", label_visibility="collapsed")
@@ -90,24 +90,24 @@ if not st.session_state.auth:
     st.markdown('</div>', unsafe_allow_html=True)
 
 else:
-    # 5. SIDEBAR DENGAN LOGO SEKOLAH
+    # 5. SIDEBAR MENU UTAMA
     with st.sidebar:
-        # Logo Sekolah dan UKS di Menu Utama (Sidebar)
         st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
-        col_side1, col_side2 = st.columns(2)
-        with col_side1: st.image("logo_sekolah.png", width=60)
-        with col_side2: st.image("logo_uks.png", width=60)
-        st.markdown("<h3 style='color:#064e3b; margin-top:10px;'>MAN 1 SUKABUMI</h3>", unsafe_allow_html=True)
+        # LOGO SIDEBAR (UKURAN 60px - RAPI)
+        cs1, cs2 = st.columns(2)
+        with cs1: st.image("logo_sekolah.png", width=60)
+        with cs2: st.image("logo_uks.png", width=60)
+        st.markdown("<h4 style='color:#064e3b; margin-top:10px;'>MAN 1 SUKABUMI</h4>", unsafe_allow_html=True)
         st.markdown("</div>---", unsafe_allow_html=True)
         
-        menu = st.radio("Menu Navigasi:", ["📊 Dashboard", "📝 Input Pasien", "💊 Stok Obat", "📅 Kegiatan UKS", "📥 Ekspor & Hapus"])
+        menu = st.radio("Pilih Layanan:", ["📊 Dashboard", "📝 Input Pasien", "💊 Stok Obat", "📅 Kegiatan UKS", "📥 Ekspor & Kelola"])
         
         st.markdown("<div style='height: 15vh;'></div>---", unsafe_allow_html=True)
         if st.button("🚪 Keluar Sistem", use_container_width=True):
             st.session_state.auth = False
             st.rerun()
 
-    # 6. KONTEN HALAMAN (Sama seperti sebelumnya namun lebih rapi)
+    # 6. KONTEN HALAMAN
     if menu == "📊 Dashboard":
         st.markdown("<h1 class='main-header'>Dashboard UKS Digital</h1>", unsafe_allow_html=True)
         df_p = load_data("pasien", ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"])
@@ -163,17 +163,17 @@ else:
                     df = load_data("kegiatan", ["Tanggal", "Kegiatan", "Peserta", "Keterangan"])
                     save_data(pd.concat([df, pd.DataFrame([[str(k_t), k_n, k_p, k_k]], columns=df.columns)], ignore_index=True), "kegiatan"); st.success("Kegiatan dicatat!")
 
-    elif menu == "📥 Ekspor & Hapus":
+    elif menu == "📥 Ekspor & Kelola":
         st.markdown("<h1 class='main-header'>Kelola Data</h1>", unsafe_allow_html=True)
         for k in ["pasien", "stok", "kegiatan", "siswa"]:
             d = load_data(k, [])
             if not d.empty:
                 with st.expander(f"Kelola {k.capitalize()}"):
                     st.download_button(f"📥 Download CSV {k}", d.to_csv(index=False), f"{k}.csv", "text/csv")
-                    row = st.selectbox(f"Pilih baris {k} untuk dihapus", d.index, key=f"del_{k}")
-                    if st.button(f"🗑️ Hapus {k}", key=f"btn_{k}"):
+                    row = st.selectbox(f"Hapus baris {k}", d.index, key=f"del_{k}")
+                    if st.button(f"🗑️ Hapus Permanen {k}", key=f"btn_{k}"):
                         d = d.drop(row).reset_index(drop=True)
-                        save_data(d, k); st.success("Terhapus!"); st.rerun()
+                        save_data(d, k); st.success("Data Terhapus!"); st.rerun()
                     st.dataframe(d, use_container_width=True)
 
 st.markdown("---")
