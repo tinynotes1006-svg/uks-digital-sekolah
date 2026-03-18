@@ -167,8 +167,7 @@ if menu == "📊 Dashboard Statistik":
     # --- BARIS 3: TABEL DETAIL ---
     st.markdown("### 🕒 Riwayat Kunjungan Terakhir")
     st.dataframe(df_p.tail(10), use_container_width=True)
-
-    elif menu == "📝 Input Pasien":
+  elif menu == "📝 Input Pasien":
         st.markdown("<h1 class='main-header'>Catat Kunjungan</h1>", unsafe_allow_html=True)
         # Sisa kode tetap sama...
         df_s = load_data("siswa", ["nama_siswa", "kelas"])
