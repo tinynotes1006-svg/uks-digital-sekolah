@@ -231,12 +231,11 @@ else:
                         st.info(row['Keterangan'] if row['Keterangan'] else "-")
         else:
             st.info("Belum ada data kegiatan.")
-    # 10. KELOLA DATA (BISA UNDUH SEMUA)
+   # 10. KELOLA DATA
     elif menu == "📥 Kelola Data":
         st.markdown("<h1 class='main-header'>📥 Kelola & Unduh Data</h1>", unsafe_allow_html=True)
         st.info("Di sini Anda dapat mengunduh semua database UKS atau menghapus data yang salah.")
         
-        # Grid layout untuk kartu download
         tabs = st.tabs(["🏥 Data Pasien", "💊 Data Stok", "📅 Data Kegiatan", "👥 Data Siswa"])
         
         with tabs[0]:
@@ -253,41 +252,24 @@ else:
                 save_data(d_stok[:-1], "stok"); st.rerun()
             st.dataframe(d_stok, use_container_width=True)
 
-       with tabs[2]:
+        with tabs[2]:
             d_keg = load_data("kegiatan")
-            
-            # Baris Tombol Download
             col_csv, col_zip = st.columns(2)
             
             with col_csv:
-                st.download_button(
-                    "📥 Download Data (CSV)", 
-                    d_keg.to_csv(index=False), 
-                    "data_kegiatan.csv", 
-                    "text/csv",
-                    use_container_width=True
-                )
+                st.download_button("📥 Download Data (CSV)", d_keg.to_csv(index=False), "data_kegiatan.csv", "text/csv", use_container_width=True)
             
             with col_zip:
-                # Logika Membuat ZIP dari folder uploads
                 if os.path.exists("uploads") and os.listdir("uploads"):
-                    # Membuat file zip sementara bernama 'foto_kegiatan.zip'
+                    import shutil
                     shutil.make_archive("backup_foto", 'zip', "uploads")
-                    
                     with open("backup_foto.zip", "rb") as fp:
-                        st.download_button(
-                            "🖼️ Download Semua Foto (ZIP)",
-                            data=fp,
-                            file_name="semua_foto_uks.zip",
-                            mime="application/zip",
-                            use_container_width=True
-                        )
+                        st.download_button("🖼️ Download Foto (ZIP)", data=fp, file_name="foto_uks.zip", mime="application/zip", use_container_width=True)
                 else:
                     st.button("🖼️ Belum Ada Foto", disabled=True, use_container_width=True)
 
             if st.button("🗑️ Hapus Baris Terakhir Kegiatan"):
                 save_data(d_keg[:-1], "kegiatan"); st.rerun()
-            
             st.dataframe(d_keg, use_container_width=True)
 
         with tabs[3]:
