@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import shutil # Tambahkan ini di baris paling atas bersama import lainnya
+import pytz # Tambahkan ini
 from datetime import datetime
 
 # 1. KONFIGURASI HALAMAN
@@ -172,7 +173,9 @@ else:
 
             if st.form_submit_button("💾 Simpan Data"):
                 nama_final = on_baru if on == "+ Tambah Baru" else on
-                tgl_update = datetime.now().strftime("%d/%m/%Y %H:%M")
+                # Kode baru (Zona Jakarta/WIB)
+tz_jakarta = pytz.timezone('Asia/Jakarta')
+tgl_update = datetime.now(tz_jakarta).strftime("%d/%m/%Y %H:%M")
                 
                 if nama_final:
                     # Jika update obat lama, hapus baris lamanya dulu
