@@ -160,7 +160,6 @@ else:
             c1, c2, c3 = st.columns([2, 1, 1])
             
             with c1:
-                # Ambil daftar obat yang ada
                 list_obat = df_o['Obat'].unique().tolist() if not df_o.empty else []
                 on = st.selectbox("Pilih Obat", ["+ Tambah Baru"] + list_obat)
                 on_baru = st.text_input("Nama Obat Baru (jika pilih Tambah Baru)")
@@ -172,22 +171,23 @@ else:
                 us = st.selectbox("Satuan", ["Tablet", "Strip", "Pcs", "Botol", "Sachet", "Kapsul"])
 
             if st.form_submit_button("💾 Simpan Data"):
+                import pytz # Import di dalam atau di atas (pastikan pytz ada di requirements.txt)
                 nama_final = on_baru if on == "+ Tambah Baru" else on
-                # Kode baru (Zona Jakarta/WIB)
-                    tz_jakarta = pytz.timezone('Asia/Jakarta')
-                    tgl_update = datetime.now(tz_jakarta).strftime("%d/%m/%Y %H:%M")
+                
+                # Pengaturan Waktu WIB
+                tz_jakarta = pytz.timezone('Asia/Jakarta')
+                tgl_update = datetime.now(tz_jakarta).strftime("%d/%m/%Y %H:%M")
                 
                 if nama_final:
-                    # Jika update obat lama, hapus baris lamanya dulu
                     if on != "+ Tambah Baru":
                         df_o = df_o[df_o['Obat'] != on]
                     
-                    # Buat data baru (4 kolom sesuai cols_map)
+                    # Memasukkan data ke dataframe (pastikan kolom sesuai load_data)
                     new_stok = pd.DataFrame([[nama_final, js, us, tgl_update]], columns=df_o.columns)
                     df_o = pd.concat([df_o, new_stok], ignore_index=True)
                     
                     save_data(df_o, "stok")
-                    st.success(f"✅ Stok {nama_final} diperbarui!")
+                    st.success(f"✅ Stok {nama_final} diperbarui pada {tgl_update}")
                     st.rerun()
                 else:
                     st.error("Nama obat tidak boleh kosong!")
@@ -195,7 +195,6 @@ else:
         st.markdown("---")
         st.subheader("📦 Data Inventaris UKS")
         if not df_o.empty:
-            # Urutkan berdasarkan nama obat
             st.dataframe(df_o.sort_values("Obat"), use_container_width=True, hide_index=True)
         else:
             st.info("Stok masih kosong.")
