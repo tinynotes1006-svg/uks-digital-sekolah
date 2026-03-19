@@ -168,7 +168,7 @@ else:
                 js = st.number_input("Jumlah Stok", min_value=0)
                 
             with c3:
-                us = st.selectbox("Satuan", ["Tablet", "Strip", "Pcs", "Botol", "Sachet", "Kapsul"])
+                us = st.selectbox("Satuan", ["Tablet", "Strip", "Pcs", "Botol", "Tube", "Sachet", "Kapsul", "Kaplet", "Pot", "Box", "Blister", "mL", "Unit"])
 
             if st.form_submit_button("💾 Simpan Data"):
                 import pytz # Import di dalam atau di atas (pastikan pytz ada di requirements.txt)
