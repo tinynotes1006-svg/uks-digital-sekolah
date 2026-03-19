@@ -2,19 +2,6 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
-from streamlit_gsheets import GSheetsConnection
-
-# Inisialisasi Koneksi ke Google Sheets
-conn = st.connection("gsheets", type=GSheetsConnection)
-
-def load_data_cloud(worksheet_name):
-    # Mengambil data dari Google Sheets secara otomatis
-    return conn.read(worksheet=worksheet_name, ttl="0")
-
-def save_data_cloud(df, worksheet_name):
-    # Menulis data ke Google Sheets secara otomatis
-    conn.update(worksheet=worksheet_name, data=df)
-    st.cache_data.clear() # Membersihkan cache agar data terbaru langsung muncul
 
 # 1. KONFIGURASI HALAMAN
 st.set_page_config(page_title="UKS Digital MAN 1", page_icon="🏥", layout="wide")
