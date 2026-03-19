@@ -121,7 +121,7 @@ else:
                 st.area_chart(chart_data, color="#10b981")
         else: st.info("Data kunjungan masih kosong.")
 
-    # 7. HALAMAN INPUT PASIEN (FILTER BERDASARKAN KELAS)
+# 7. HALAMAN INPUT PASIEN (FIX: NAMA OTOMATIS BERUBAH SAAT KELAS DIGANTI)
     elif menu == "📝 Input Pasien":
         st.markdown("<h1 class='main-header'>📝 Registrasi Pasien</h1>", unsafe_allow_html=True)
         df_s = load_data("siswa", ["nama_siswa", "kelas"])
@@ -130,29 +130,38 @@ else:
         with st.expander("➕ Tambah Master Data Siswa Baru"):
             with st.form("f_siswa", clear_on_submit=True):
                 ns = st.text_input("Nama Lengkap Siswa")
-                ks = st.selectbox("Pilih Kelas", get_list_kelas(), key="add_ks")
+                ks = st.selectbox("Pilih Kelas", get_list_kelas(), key="master_ks")
                 if st.form_submit_button("Simpan Siswa"):
                     if ns:
                         df_s = pd.concat([df_s, pd.DataFrame([[ns, ks]], columns=df_s.columns)], ignore_index=True)
                         save_data(df_s, "siswa"); st.success(f"{ns} terdaftar!"); st.rerun()
 
         st.subheader("Catat Kunjungan Baru")
+        
+        # PILIH KELAS (Tanpa Form agar reaktif)
+        pilih_kls = st.selectbox("1. Pilih Kelas", get_list_kelas(), key="filter_kelas")
+        
+        # Filter Nama berdasarkan Kelas yang dipilih di atas
+        names_in_class = df_s[df_s['kelas'] == pilih_kls]['nama_siswa'].unique().tolist()
+        names_in_class = sorted(names_in_class)
+
         with st.form("f_kunjungan", clear_on_submit=True):
-            pilih_kls = st.selectbox("1. Pilih Kelas", get_list_kelas())
-            # Filter Nama berdasarkan Kelas
-            names_in_class = df_s[df_s['kelas'] == pilih_kls]['nama_siswa'].unique().tolist()
-            
             if names_in_class:
-                nama_psn = st.selectbox("2. Pilih Nama Siswa", sorted(names_in_class))
+                # Menambahkan KEY dinamis berdasarkan 'pilih_kls' agar widget reset saat kelas pindah
+                nama_psn = st.selectbox("2. Pilih Nama Siswa", names_in_class, key=f"select_nama_{pilih_kls}")
                 keluhan = st.text_area("3. Keluhan")
                 tindakan = st.text_input("4. Tindakan")
+                
                 if st.form_submit_button("➕ Simpan Kunjungan"):
-                    waktu = datetime.now().strftime("%Y-%m-%d %H:%M")
-                    new_p = pd.DataFrame([[waktu, nama_psn, pilih_kls, keluhan, tindakan]], columns=df_p.columns)
-                    save_data(pd.concat([df_p, new_p], ignore_index=True), "pasien")
-                    st.success("Berhasil dicatat!"); st.rerun()
+                    if keluhan:
+                        waktu = datetime.now().strftime("%Y-%m-%d %H:%M")
+                        new_p = pd.DataFrame([[waktu, nama_psn, pilih_kls, keluhan, tindakan]], columns=df_p.columns)
+                        save_data(pd.concat([df_p, new_p], ignore_index=True), "pasien")
+                        st.success(f"Kunjungan {nama_psn} berhasil dicatat!"); st.rerun()
+                    else:
+                        st.error("Keluhan harus diisi!")
             else:
-                st.warning(f"Belum ada data siswa di kelas {pilih_kls}.")
+                st.warning(f"⚠️ Belum ada data siswa di kelas {pilih_kls}. Daftarkan siswa terlebih dahulu di menu atas.")
                 st.form_submit_button("Simpan Kunjungan", disabled=True)
 
     # 8. HALAMAN STOK OBAT
