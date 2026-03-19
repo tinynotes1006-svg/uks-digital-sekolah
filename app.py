@@ -22,10 +22,6 @@ st.markdown("""
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-top: 4px solid #10b981;
         text-align: center;
     }
-    .login-box {
-        background: white; padding: 40px; border-radius: 24px; width: 400px;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); text-align: center;
-    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -71,8 +67,8 @@ if not st.session_state.auth:
         st.markdown('<div class="login-box">', unsafe_allow_html=True)
         st.image("logo_uks.png", width=120) 
         st.markdown("<h2 style='color:#064e3b;'>MAN 1 KOTA SUKABUMI</h2>", unsafe_allow_html=True)
-        user = st.text_input("Username", placeholder="adminuks")
-        pw = st.text_input("Password", type="password")
+        user = st.text_input("Username", placeholder="Username")
+        pw = st.text_input("Password", type="password", placeholder="password")
         if st.button("Masuk", use_container_width=True):
             if user == "adminuks" and pw == "man1sukabumi":
                 st.session_state.auth = True
