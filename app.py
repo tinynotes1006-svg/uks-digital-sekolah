@@ -28,7 +28,7 @@ st.markdown("""
 # 3. FUNGSI DATABASE
 FILES = {
     "pasien": "data_pasien.csv", 
-    "stok": "data_stok.csv", 
+    "stok": "data_obat.csv", 
     "kegiatan": "data_kegiatan.csv", 
     "siswa": "db_siswa.csv"
 }
@@ -70,7 +70,7 @@ if not st.session_state.auth:
         user = st.text_input("Username", placeholder="Username")
         pw = st.text_input("Password", type="password", placeholder="password")
         if st.button("Masuk", use_container_width=True):
-            if user == "adminuks" and pw == "man1sukabumi":
+            if user == "adminuks" and pw == "123456":
                 st.session_state.auth = True
                 st.rerun()
             else: st.error("Akses Ditolak")
@@ -81,7 +81,7 @@ else:
     with st.sidebar:
         st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
         st.image("logo_sekolah.png", width=80) 
-        st.markdown("<h4 style='color:#064e3b;'>MAN 1 SUKABUMI</h4></div>---", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#064e3b;'>MAN 1 KOTA SUKABUMI</h4></div>______________", unsafe_allow_html=True)
         menu = st.radio("Menu Utama:", ["📊 Dashboard", "📝 Input Pasien", "💊 Stok Obat", "📅 Kegiatan", "📥 Kelola Data"])
         if st.button("🚪 Keluar Sistem"):
             st.session_state.auth = False
@@ -90,7 +90,7 @@ else:
     # 6. DASHBOARD
     if menu == "📊 Dashboard":
         c_h1, c_h2 = st.columns([0.1, 0.9])
-        with c_h1: st.image("logo_uks.png", width=60)
+        with c_h1: st.image("logo_uks.png", width=110)
         with c_h2: st.markdown("<h1 class='main-header'>Dashboard UKS Digital</h1>", unsafe_allow_html=True)
         
         df_p = load_data("pasien")
