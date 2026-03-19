@@ -279,53 +279,91 @@ else:
                         st.info(row['Keterangan'] if row['Keterangan'] else "-")
         else:
             st.info("Belum ada data kegiatan.")
-   # 10. KELOLA DATA
+# 10. KELOLA DATA (Fitur Hapus Spesifik)
     elif menu == "📥 Kelola Data":
         st.markdown("<h1 class='main-header'>📥 Kelola & Unduh Data</h1>", unsafe_allow_html=True)
-        st.info("Di sini Anda dapat mengunduh semua database UKS atau menghapus data yang salah.")
+        st.info("Pilih tab di bawah untuk mengunduh data atau menghapus baris tertentu.")
         
-        tabs = st.tabs(["🏥 Data Pasien", "💊 Data Stok", "📅 Data Kegiatan", "👥 Data Siswa"])
+        tabs = st.tabs(["🏥 Pasien", "💊 Stok Obat", "📅 Kegiatan", "👥 Data Siswa"])
         
+        # --- TAB PASIEN ---
         with tabs[0]:
-            d_pasien = load_data("pasien")
-            st.download_button("📥 Download Data Pasien (.csv)", d_pasien.to_csv(index=False), "data_pasien.csv", "text/csv")
-            if st.button("🗑️ Hapus Baris Terakhir Pasien"):
-                save_data(d_pasien[:-1], "pasien"); st.rerun()
-            st.dataframe(d_pasien, use_container_width=True)
+            df = load_data("pasien")
+            st.download_button("📥 Download CSV", df.to_csv(index=False), "data_pasien.csv", "text/csv")
+            
+            if not df.empty:
+                st.markdown("### 🗑️ Hapus Data Pasien")
+                # Pilih baris berdasarkan indeks dan info nama
+                hapus_p = st.selectbox("Pilih data yang akan dihapus:", 
+                                     range(len(df)), 
+                                     format_func=lambda x: f"Baris {x}: {df.iloc[x]['Nama']} ({df.iloc[x]['Waktu']})")
+                if st.button("❌ Hapus Data Terpilih", key="del_p"):
+                    df = df.drop(df.index[hapus_p])
+                    save_data(df, "pasien")
+                    st.success("Data Pasien berhasil dihapus!"); st.rerun()
+            st.dataframe(df, use_container_width=True)
 
+        # --- TAB STOK ---
         with tabs[1]:
-            d_stok = load_data("stok")
-            st.download_button("📥 Download Data Stok (.csv)", d_stok.to_csv(index=False), "data_stok.csv", "text/csv")
-            if st.button("🗑️ Hapus Baris Terakhir Stok"):
-                save_data(d_stok[:-1], "stok"); st.rerun()
-            st.dataframe(d_stok, use_container_width=True)
+            df = load_data("stok")
+            st.download_button("📥 Download CSV", df.to_csv(index=False), "data_stok.csv", "text/csv")
+            
+            if not df.empty:
+                st.markdown("### 🗑️ Hapus Data Stok")
+                hapus_o = st.selectbox("Pilih Obat yang akan dihapus:", 
+                                     range(len(df)), 
+                                     format_func=lambda x: f"{df.iloc[x]['Obat']} - Stok: {df.iloc[x]['Stok']}")
+                if st.button("❌ Hapus Obat Terpilih", key="del_o"):
+                    df = df.drop(df.index[hapus_o])
+                    save_data(df, "stok")
+                    st.success("Data Stok berhasil dihapus!"); st.rerun()
+            st.dataframe(df, use_container_width=True)
 
+        # --- TAB KEGIATAN ---
         with tabs[2]:
-            d_keg = load_data("kegiatan")
-            col_csv, col_zip = st.columns(2)
-            
-            with col_csv:
-                st.download_button("📥 Download Data (CSV)", d_keg.to_csv(index=False), "data_kegiatan.csv", "text/csv", use_container_width=True)
-            
-            with col_zip:
-                if os.path.exists("uploads") and os.listdir("uploads"):
-                    import shutil
-                    shutil.make_archive("backup_foto", 'zip', "uploads")
-                    with open("backup_foto.zip", "rb") as fp:
-                        st.download_button("🖼️ Download Foto (ZIP)", data=fp, file_name="foto_uks.zip", mime="application/zip", use_container_width=True)
-                else:
-                    st.button("🖼️ Belum Ada Foto", disabled=True, use_container_width=True)
+            df = load_data("kegiatan")
+            # Tombol Download CSV & ZIP Foto
+            c1, c2 = st.columns(2)
+            c1.download_button("📥 Download CSV", df.to_csv(index=False), "data_kegiatan.csv", "text/csv")
+            if os.path.exists("uploads") and os.listdir("uploads"):
+                import shutil
+                shutil.make_archive("backup_foto", 'zip', "uploads")
+                with open("backup_foto.zip", "rb") as fp:
+                    c2.download_button("🖼️ Download Semua Foto (ZIP)", fp, "foto_kegiatan.zip", "application/zip")
 
-            if st.button("🗑️ Hapus Baris Terakhir Kegiatan"):
-                save_data(d_keg[:-1], "kegiatan"); st.rerun()
-            st.dataframe(d_keg, use_container_width=True)
+            if not df.empty:
+                st.markdown("### 🗑️ Hapus Data Kegiatan")
+                hapus_k = st.selectbox("Pilih Kegiatan yang akan dihapus:", 
+                                     range(len(df)), 
+                                     format_func=lambda x: f"{df.iloc[x]['Tanggal']} - {df.iloc[x]['Kegiatan']}")
+                if st.button("❌ Hapus Kegiatan Terpilih", key="del_k"):
+                    # Hapus file foto fisiknya jika ada
+                    foto_lama = df.iloc[hapus_k]['Foto']
+                    if foto_lama != "No Photo":
+                        path_foto = os.path.join("uploads", str(foto_lama))
+                        if os.path.exists(path_foto):
+                            os.remove(path_foto)
+                    
+                    df = df.drop(df.index[hapus_k])
+                    save_data(df, "kegiatan")
+                    st.success("Data Kegiatan & Foto berhasil dihapus!"); st.rerun()
+            st.dataframe(df, use_container_width=True)
 
+        # --- TAB SISWA ---
         with tabs[3]:
-            d_siswa = load_data("siswa")
-            st.download_button("📥 Download Database Siswa (.csv)", d_siswa.to_csv(index=False), "db_siswa.csv", "text/csv")
-            if st.button("🗑️ Hapus Baris Terakhir Siswa"):
-                save_data(d_siswa[:-1], "siswa"); st.rerun()
-            st.dataframe(d_siswa, use_container_width=True)
+            df = load_data("siswa")
+            st.download_button("📥 Download CSV", df.to_csv(index=False), "db_siswa.csv", "text/csv")
+            
+            if not df.empty:
+                st.markdown("### 🗑️ Hapus Data Siswa")
+                hapus_s = st.selectbox("Pilih Siswa yang akan dihapus:", 
+                                     range(len(df)), 
+                                     format_func=lambda x: f"{df.iloc[x]['nama_siswa']} (Kelas: {df.iloc[x]['kelas']})")
+                if st.button("❌ Hapus Siswa Terpilih", key="del_s"):
+                    df = df.drop(df.index[hapus_s])
+                    save_data(df, "siswa")
+                    st.success("Data Siswa berhasil dihapus!"); st.rerun()
+            st.dataframe(df, use_container_width=True)
 
 st.markdown("---")
 st.caption("© 2026 MAN 1 Kota Sukabumi | UKS Digital System")
