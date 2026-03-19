@@ -199,17 +199,41 @@ else:
                     st.success("Kegiatan tersimpan!"); st.rerun()
         st.dataframe(df_k, use_container_width=True)
 
-    # 10. KELOLA DATA
+    # 10. KELOLA DATA (BISA UNDUH SEMUA)
     elif menu == "📥 Kelola Data":
-        st.markdown("<h1 class='main-header'>📥 Manajemen Data</h1>", unsafe_allow_html=True)
-        for k in ["pasien", "stok", "kegiatan", "siswa"]:
-            d = load_data(k, ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"] if k=="pasien" else [])
-            if not d.empty:
-                with st.expander(f"Data {k.capitalize()}"):
-                    st.download_button(f"📥 Download {k}.csv", d.to_csv(index=False), f"{k}.csv", "text/csv")
-                    if st.button(f"🗑️ Hapus Baris Terakhir {k}"):
-                        save_data(d[:-1], k); st.rerun()
-                    st.dataframe(d, use_container_width=True)
+        st.markdown("<h1 class='main-header'>📥 Kelola & Unduh Data</h1>", unsafe_allow_html=True)
+        st.info("Di sini Anda dapat mengunduh semua database UKS atau menghapus data yang salah.")
+        
+        # Grid layout untuk kartu download
+        tabs = st.tabs(["🏥 Data Pasien", "💊 Data Stok", "📅 Data Kegiatan", "👥 Data Siswa"])
+        
+        with tabs[0]:
+            d_pasien = load_data("pasien")
+            st.download_button("📥 Download Data Pasien (.csv)", d_pasien.to_csv(index=False), "data_pasien.csv", "text/csv")
+            if st.button("🗑️ Hapus Baris Terakhir Pasien"):
+                save_data(d_pasien[:-1], "pasien"); st.rerun()
+            st.dataframe(d_pasien, use_container_width=True)
+
+        with tabs[1]:
+            d_stok = load_data("stok")
+            st.download_button("📥 Download Data Stok (.csv)", d_stok.to_csv(index=False), "data_stok.csv", "text/csv")
+            if st.button("🗑️ Hapus Baris Terakhir Stok"):
+                save_data(d_stok[:-1], "stok"); st.rerun()
+            st.dataframe(d_stok, use_container_width=True)
+
+        with tabs[2]:
+            d_keg = load_data("kegiatan")
+            st.download_button("📥 Download Data Kegiatan (.csv)", d_keg.to_csv(index=False), "data_kegiatan.csv", "text/csv")
+            if st.button("🗑️ Hapus Baris Terakhir Kegiatan"):
+                save_data(d_keg[:-1], "kegiatan"); st.rerun()
+            st.dataframe(d_keg, use_container_width=True)
+
+        with tabs[3]:
+            d_siswa = load_data("siswa")
+            st.download_button("📥 Download Database Siswa (.csv)", d_siswa.to_csv(index=False), "db_siswa.csv", "text/csv")
+            if st.button("🗑️ Hapus Baris Terakhir Siswa"):
+                save_data(d_siswa[:-1], "siswa"); st.rerun()
+            st.dataframe(d_siswa, use_container_width=True)
 
 st.markdown("---")
-st.caption("© 2026 MAN 1 Kota Sukabumi | UKS Digital System")
+st.caption("© 2026 UKS MAN 1 Kota Sukabumi | UKS Digital System")
