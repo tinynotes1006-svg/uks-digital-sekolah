@@ -79,7 +79,7 @@ if not st.session_state.auth:
         user = st.text_input("Username", placeholder="Username")
         pw = st.text_input("Password", type="password", placeholder="password")
         if st.button("Masuk", use_container_width=True):
-            if user == "adminuks" and pw == "123456":
+            if user == "uksman1ksi" and pw == "man1kotsi":
                 st.session_state.auth = True
                 st.rerun()
             else: st.error("Akses Ditolak")
