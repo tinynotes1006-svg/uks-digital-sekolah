@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import shutil # Tambahkan ini di baris paling atas bersama import lainnya
 from datetime import datetime
 
 # 1. KONFIGURASI HALAMAN
@@ -252,11 +253,41 @@ else:
                 save_data(d_stok[:-1], "stok"); st.rerun()
             st.dataframe(d_stok, use_container_width=True)
 
-        with tabs[2]:
+       with tabs[2]:
             d_keg = load_data("kegiatan")
-            st.download_button("📥 Download Data Kegiatan (.csv)", d_keg.to_csv(index=False), "data_kegiatan.csv", "text/csv")
+            
+            # Baris Tombol Download
+            col_csv, col_zip = st.columns(2)
+            
+            with col_csv:
+                st.download_button(
+                    "📥 Download Data (CSV)", 
+                    d_keg.to_csv(index=False), 
+                    "data_kegiatan.csv", 
+                    "text/csv",
+                    use_container_width=True
+                )
+            
+            with col_zip:
+                # Logika Membuat ZIP dari folder uploads
+                if os.path.exists("uploads") and os.listdir("uploads"):
+                    # Membuat file zip sementara bernama 'foto_kegiatan.zip'
+                    shutil.make_archive("backup_foto", 'zip', "uploads")
+                    
+                    with open("backup_foto.zip", "rb") as fp:
+                        st.download_button(
+                            "🖼️ Download Semua Foto (ZIP)",
+                            data=fp,
+                            file_name="semua_foto_uks.zip",
+                            mime="application/zip",
+                            use_container_width=True
+                        )
+                else:
+                    st.button("🖼️ Belum Ada Foto", disabled=True, use_container_width=True)
+
             if st.button("🗑️ Hapus Baris Terakhir Kegiatan"):
                 save_data(d_keg[:-1], "kegiatan"); st.rerun()
+            
             st.dataframe(d_keg, use_container_width=True)
 
         with tabs[3]:
