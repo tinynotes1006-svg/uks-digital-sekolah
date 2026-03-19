@@ -67,7 +67,8 @@ if not st.session_state.auth:
         st.markdown('<div class="login-box">', unsafe_allow_html=True)
         st.image("logo_uks.png", width=120) 
         st.markdown("<h2 style='color:#064e3b;'>MAN 1 KOTA SUKABUMI</h2>", unsafe_allow_html=True)
-        st.markdown("<div class='sekolah-sub-login'>🏥 SISTEM UKS DIGITAL</div>", unsafe_allow_html=True)
+        st.markdown("<div class='sekolah-sub-login'>SISTEM UKS DIGITAL</div>", unsafe_allow_html=True)
+        
         user = st.text_input("Username", placeholder="Username")
         pw = st.text_input("Password", type="password", placeholder="password")
         if st.button("Masuk", use_container_width=True):
