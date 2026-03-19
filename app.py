@@ -150,20 +150,65 @@ else:
                 st.warning(f"Belum ada siswa di kelas {pilih_kls}")
                 st.form_submit_button("Simpan", disabled=True)
 
-    # 8. STOK OBAT
+    # 8. STOK OBAT (Update Otomatis & Tanggal)
     elif menu == "💊 Stok Obat":
-        st.markdown("<h1 class='main-header'>💊 Stok Obat</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 class='main-header'>💊 Manajemen Stok Obat</h1>", unsafe_allow_html=True)
         df_o = load_data("stok")
+        
+        # Form Input / Update
         with st.form("f_o", clear_on_submit=True):
+            st.subheader("Input atau Update Stok")
             c1, c2, c3 = st.columns([2, 1, 1])
-            with c1: on = st.text_input("Nama Obat")
-            with c2: js = st.number_input("Jumlah", min_value=0)
-            with c3: us = st.selectbox("Satuan", ["Tablet", "Strip", "Pcs", "Botol", "Tube", "Sachet", "Kapsul", "Kaplet", "Pot", "Box", "Blister", "mL", "Unit"])
-            if st.form_submit_button("➕ Simpan Stok"):
-                if on:
-                    df_o = pd.concat([df_o, pd.DataFrame([[on, js, us]], columns=df_o.columns)], ignore_index=True)
-                    save_data(df_o, "stok"); st.success("Stok Terupdate!"); st.rerun()
-        st.dataframe(df_o, use_container_width=True)
+            
+            with c1:
+                # Mengambil daftar obat yang sudah ada untuk memudahkan update
+                list_obat_ada = df_o['Obat'].tolist() if not df_o.empty else []
+                on = st.selectbox("Pilih Obat (atau ketik baru di bawah)", ["+ Tambah Obat Baru"] + list_obat_ada)
+                on_baru = st.text_input("Nama Obat Baru (Isi jika pilih '+ Tambah Obat Baru')")
+                
+            with c2:
+                js = st.number_input("Jumlah Stok Baru", min_value=0)
+                
+            with c3:
+                us = st.selectbox("Satuan", ["Tablet", "Strip", "Pcs", "Botol", "Sachet", "Kapsul", "Unit"])
+
+            if st.form_submit_button("💾 Simpan / Update Stok"):
+                nama_final = on_baru if on == "+ Tambah Obat Baru" else on
+                tgl_update = datetime.now().strftime("%Y-%m-%d %H:%M")
+                
+                if nama_final:
+                    if on != "+ Tambah Obat Baru":
+                        # Logika Update: Hapus data lama, masukkan data baru
+                        df_o = df_o[df_o['Obat'] != on]
+                    
+                    new_stok = pd.DataFrame([[nama_final, js, us, tgl_update]], columns=df_o.columns)
+                    df_o = pd.concat([df_o, new_stok], ignore_index=True)
+                    
+                    save_data(df_o, "stok")
+                    st.success(f"✅ Stok {nama_final} berhasil diperbarui pada {tgl_update}")
+                    st.rerun()
+                else:
+                    st.error("Nama obat harus diisi!")
+
+        st.markdown("---")
+        st.subheader("📦 Daftar Inventaris Obat")
+        
+        if not df_o.empty:
+            # Beri warna peringatan jika stok menipis (misal di bawah 5)
+            def highlight_stok(val):
+                color = '#fee2e2' if val < 5 else 'white'
+                return f'background-color: {color}'
+
+            # Tampilkan tabel dengan penataan yang lebih baik
+            df_display = df_o.sort_values(by="Obat")
+            st.dataframe(df_display, use_container_width=True, hide_index=True)
+            
+            # Info singkat stok kritis
+            stok_kritis = df_o[df_o['Stok'] < 5]['Obat'].tolist()
+            if stok_kritis:
+                st.warning(f"⚠️ **Stok Menipis:** {', '.join(stok_kritis)}")
+        else:
+            st.info("Belum ada data obat.")
 
    # 9. KEGIATAN
     elif menu == "📅 Kegiatan":
