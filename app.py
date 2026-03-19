@@ -158,20 +158,50 @@ else:
                     save_data(df_o, "stok"); st.success("Stok Terupdate!"); st.rerun()
         st.dataframe(df_o, use_container_width=True)
 
-    # 9. KEGIATAN
+    # 9. KEGIATAN (Updated dengan Foto)
     elif menu == "📅 Kegiatan":
         st.markdown("<h1 class='main-header'>📅 Laporan Kegiatan</h1>", unsafe_allow_html=True)
         df_k = load_data("kegiatan")
+        
         with st.form("f_k", clear_on_submit=True):
             tgl = st.date_input("Tanggal")
             keg = st.text_input("Nama Kegiatan")
             pes = st.number_input("Peserta", min_value=0)
             ket = st.text_area("Keterangan")
+            
+            # Tambahan Input Foto
+            uploaded_file = st.file_uploader("Upload Foto Kegiatan", type=["jpg", "jpeg", "png"])
+            
             if st.form_submit_button("➕ Simpan Kegiatan"):
                 if keg:
-                    df_k = pd.concat([df_k, pd.DataFrame([[str(tgl), keg, pes, ket]], columns=df_k.columns)], ignore_index=True)
-                    save_data(df_k, "kegiatan"); st.success("Kegiatan Dicatat!"); st.rerun()
-        st.dataframe(df_k, use_container_width=True)
+                    file_name = "No Photo"
+                    if uploaded_file is not None:
+                        # Buat nama file unik berdasarkan waktu agar tidak tertukar
+                        file_name = f"foto_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+                        with open(os.path.join("uploads", file_name), "wb") as f:
+                            f.write(uploaded_file.getbuffer())
+                    
+                    # Simpan data ke DataFrame
+                    new_keg = pd.DataFrame([[str(tgl), keg, pes, ket, file_name]], columns=df_k.columns)
+                    df_k = pd.concat([df_k, new_keg], ignore_index=True)
+                    save_data(df_k, "kegiatan")
+                    st.success("Kegiatan dan Foto Berhasil Dicatat!")
+                    st.rerun()
+
+        st.markdown("### 📋 Riwayat Kegiatan")
+        # Menampilkan data dengan preview foto
+        if not df_k.empty:
+            for index, row in df_k.iterrows():
+                with st.expander(f"{row['Tanggal']} - {row['Kegiatan']}"):
+                    col1, col2 = st.columns([1, 2])
+                    with col1:
+                        if row['Foto'] != "No Photo" and os.path.exists(f"uploads/{row['Foto']}"):
+                            st.image(f"uploads/{row['Foto']}", use_container_width=True)
+                        else:
+                            st.info("Tidak ada foto")
+                    with col2:
+                        st.write(f"**Peserta:** {row['Peserta']} orang")
+                        st.write(f"**Keterangan:** {row['Keterangan']}")
 
     # 10. KELOLA DATA (BISA UNDUH SEMUA)
     elif menu == "📥 Kelola Data":
