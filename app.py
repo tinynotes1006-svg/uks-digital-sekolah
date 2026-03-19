@@ -6,41 +6,51 @@ from datetime import datetime
 # 1. KONFIGURASI HALAMAN
 st.set_page_config(page_title="UKS Digital MAN 1", page_icon="🏥", layout="wide")
 
-# 2. CSS MODERN
+# 2. CSS UNTUK TAMPILAN RAPI & SIMETRIS
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
     html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; }
     .stApp { background-color: #f8fafc; }
     .metric-card {
-    background: white; padding: 24px; border-radius: 20px;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-        border-bottom: 5px solid #10b981; text-align: center;
-
+        background: white; padding: 20px; border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-top: 4px solid #10b981;
+        text-align: center;
     }
     .main-header {
         background: linear-gradient(90deg, #059669, #10b981);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         font-weight: 800; font-size: 2.3rem; margin: 0;
     }
-   
+    .login-box {
+        background: white; padding: 40px; border-radius: 24px; width: 400px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); text-align: center;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. FUNGSI DATABASE CSV
-FILES = {"pasien": "data_pasien.csv", "stok": "data_stok.csv", "kegiatan": "data_kegiatan.csv", "siswa": "db_siswa.csv"}
+# 3. FUNGSI DATABASE CSV (Mencegah KeyError & ValueError)
+FILES = {
+    "pasien": "data_pasien.csv", 
+    "stok": "data_stok.csv", 
+    "kegiatan": "data_kegiatan.csv", 
+    "siswa": "db_siswa.csv"
+}
 
 def load_data(key, cols):
     if os.path.exists(FILES[key]):
-        try: return pd.read_csv(FILES[key])
-        except: return pd.DataFrame(columns=cols)
+        try:
+            df = pd.read_csv(FILES[key])
+            # Pastikan kolom sesuai, jika tidak buat ulang
+            if list(df.columns) != cols:
+                return pd.DataFrame(columns=cols)
+            return df
+        except:
+            return pd.DataFrame(columns=cols)
     return pd.DataFrame(columns=cols)
 
 def save_data(df, key):
     df.to_csv(FILES[key], index=False)
-
-def get_list_kelas():
-    return [f"{tk}-{chr(i)}" for tk in ["X", "XI", "XII"] for i in range(ord('A'), ord('K'))]
 
 # 4. SISTEM LOGIN
 if 'auth' not in st.session_state:
@@ -50,102 +60,128 @@ if not st.session_state.auth:
     _, col_log, _ = st.columns([1, 1.2, 1])
     with col_log:
         st.markdown('<div class="login-box">', unsafe_allow_html=True)
+        # Logo UKS di Tengah Halaman Login
         st.image("logo_uks.png", width=120) 
-        st.markdown("<h2 style='color:#064e3b;'>MAN 1 KOTA SUKABUMI</h2>", unsafe_allow_html=True)
-        user = st.text_input("Username", placeholder="Username")
-        pw = st.text_input("Password", type="password", placeholder="password")
-        if st.button("MASUK", use_container_width=True):
+        st.markdown("<h2 style='color:#064e3b; margin-top:10px;'>MAN 1 KOTA SUKABUMI</h2>", unsafe_allow_html=True)
+        user = st.text_input("Username", placeholder="Username", label_visibility="collapsed")
+        pw = st.text_input("Password", type="password", placeholder="password", label_visibility="collapsed")
+        if st.button("Masuk ke Sistem", use_container_width=True):
             if user == "adminuks" and pw == "123":
                 st.session_state.auth = True
                 st.rerun()
-            else: st.error("Salah!")
+            else: st.error("Login Gagal")
         st.markdown('</div>', unsafe_allow_html=True)
 
 else:
-    # 5. SIDEBAR
+    # 5. SIDEBAR (LOGO SEKOLAH)
     with st.sidebar:
         st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
-        st.image("logo_sekolah.png", width=85) 
-        st.markdown("<h4>MAN 1 KOTA SUKABUMI</h4></div>", unsafe_allow_html=True)
-        menu = st.radio("Menu:", ["📊 Dashboard", "📝 Input Pasien", "💊 Stok Obat", "📅 Kegiatan", "📥 Kelola Data"])
+        st.image("logo_sekolah.png", width=80) 
+        st.markdown("<h4 style='color:#064e3b;'>MAN 1 SUKABUMI</h4></div>---", unsafe_allow_html=True)
+        menu = st.radio("Pilih Menu:", ["📊 Dashboard", "📝 Input Pasien", "💊 Stok Obat", "📅 Kegiatan", "📥 Kelola Data"])
+        st.markdown("---")
         if st.button("🚪 Keluar"):
             st.session_state.auth = False
             st.rerun()
 
-    # 6. KONTEN (PASTIKAN INDENTASI DI SINI SAMA)
+    # 6. MENU DASHBOARD
     if menu == "📊 Dashboard":
-        h_c1, h_c2 = st.columns([0.1, 0.9])
-        with h_c1: st.image("logo_uks.png", width=100)
-        with h_c2: st.markdown("<h1 class='main-header'>Dashboard UKS Digital</h1>", unsafe_allow_html=True)
+        col_h1, col_h2 = st.columns([0.1, 0.9])
+        with col_h1: st.image("logo_uks.png", width=60)
+        with col_h2: st.markdown("<h1 class='main-header'>Dashboard UKS Digital</h1>", unsafe_allow_html=True)
         
         df_p = load_data("pasien", ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"])
         df_o = load_data("stok", ["Obat", "Stok", "Satuan"])
-        df_k = load_data("kegiatan", ["Tanggal", "Kegiatan", "Peserta"])
+        df_k = load_data("kegiatan", ["Tanggal", "Kegiatan", "Peserta", "Keterangan"])
         
+        # Metrik Utama
         m1, m2, m3 = st.columns(3)
-        with m1: st.markdown(f'<div class="metric-card"><h5>Kunjungan</h5><h2>{len(df_p)}</h2></div>', unsafe_allow_html=True)
-        with m2: st.markdown(f'<div class="metric-card"><h5>Kegiatan</h5><h2>{len(df_k)}</h2></div>', unsafe_allow_html=True)
+        with m1: st.markdown(f'<div class="metric-card"><h5>Total Pasien</h5><h2>{len(df_p)}</h2></div>', unsafe_allow_html=True)
+        with m2: st.markdown(f'<div class="metric-card"><h5>Total Kegiatan</h5><h2>{len(df_k)}</h2></div>', unsafe_allow_html=True)
         with m3: st.markdown(f'<div class="metric-card"><h5>Jenis Obat</h5><h2>{len(df_o)}</h2></div>', unsafe_allow_html=True)
         
-        col_g, col_a = st.columns([1.2, 0.8])
-        with col_g:
-            st.markdown("### 📈 Statistik Kunjungan")
+        # Statistik Kunjungan
+        st.markdown("### 📈 Statistik Kunjungan Siswa")
+        if not df_p.empty:
+            # Proteksi error kolom Waktu
+            df_p['Waktu'] = pd.to_datetime(df_p['Waktu'], errors='coerce')
+            df_p = df_p.dropna(subset=['Waktu'])
             if not df_p.empty:
-                df_p['Waktu'] = pd.to_datetime(df_p['Waktu']).dt.date
-                st.area_chart(df_p.groupby('Waktu').size(), color="#10b981")
-        with col_a:
-            st.markdown("### 📅 Agenda")
-            st.dataframe(df_k.tail(5), use_container_width=True)
+                chart_data = df_p.groupby(df_p['Waktu'].dt.date).size()
+                st.area_chart(chart_data, color="#10b981")
+        else: st.info("Belum ada data kunjungan.")
 
-    elif menu == "📝 Input Pasien":
-        st.markdown("<h1 class='main-header'>Input Pasien</h1>", unsafe_allow_html=True)
-        df_s = load_data("siswa", ["nama_siswa", "kelas"])
-        with st.expander("➕Tambah Data Siswa"):
-            with st.form("f_s"):
-                ns = st.text_input("Nama"); ks = st.selectbox("Kelas", get_list_kelas())
-                if st.form_submit_button("Simpan"):
-                    df_s = pd.concat([df_s, pd.DataFrame([[ns, ks]], columns=df_s.columns)], ignore_index=True)
-                    save_data(df_s, "siswa"); st.rerun()
-        
-        with st.form("f_p"):
-            kls = st.selectbox("Kelas", get_list_kelas())
-            list_n = df_s[df_s['kelas'] == kls]['nama_siswa'].tolist()
-            nama = st.selectbox("Nama", sorted(list_n) if list_n else ["Kosong"])
-            kel = st.text_area("Keluhan"); tin = st.text_input("Tindakan")
-            if st.form_submit_button("Simpan Kunjungan"):
-                df = load_data("pasien", ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"])
-                new = pd.DataFrame([[datetime.now().strftime("%Y-%m-%d %H:%M"), nama, kls, kel, tin]], columns=df.columns)
-                save_data(pd.concat([df, new], ignore_index=True), "pasien"); st.success("Selesai!")
-
+    # 7. MENU STOK OBAT (DENGAN ICON TAMBAH & SATUAN LENGKAP)
     elif menu == "💊 Stok Obat":
-        st.markdown("<h1 class='main-header'>Stok Obat</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 class='main-header'>💊 Inventaris Obat</h1>", unsafe_allow_html=True)
         df_o = load_data("stok", ["Obat", "Stok", "Satuan"])
-        with st.form("f_o"):
-            o_n = st.text_input("Obat"); o_s = st.number_input("Jumlah", 0); o_u = st.selectbox("Satuan", ["Tablet", "Strip", "Pcs", "Botol", "Tube", "Sachet", "Kapsul", "Kaplet", "Pot", "Box", "Blister", "mL", "Unit"])
-            if st.form_submit_button("Update"):
-                df_o = pd.concat([df_o, pd.DataFrame([[o_n, o_s, o_u]], columns=df_o.columns)], ignore_index=True)
-                save_data(df_o, "stok"); st.rerun()
+        
+        with st.expander("➕ Tambah Data Obat Baru", expanded=True):
+            with st.form("form_stok", clear_on_submit=True):
+                c1, c2, c3 = st.columns([2, 1, 1])
+                with c1: n_obat = st.text_input("Nama Obat")
+                with c2: j_obat = st.number_input("Jumlah", min_value=0)
+                with c3: s_obat = st.selectbox("Satuan", ["Tablet", "Strip", "Pcs", "Botol", "Tube", "Sachet", "Kapsul", "Kaplet", "Pot", "Box", "Blister", "mL", "Unit"])
+                
+                if st.form_submit_button("➕ Simpan Obat"):
+                    if n_obat:
+                        df_o = pd.concat([df_o, pd.DataFrame([[n_obat, j_obat, s_obat]], columns=df_o.columns)], ignore_index=True)
+                        save_data(df_o, "stok")
+                        st.success("Data Tersimpan!"); st.rerun()
+        
         st.dataframe(df_o, use_container_width=True)
 
+    # 8. MENU KEGIATAN (FIX VALUE ERROR)
     elif menu == "📅 Kegiatan":
-        st.markdown("<h1 class='main-header'>Kegiatan</h1>", unsafe_allow_html=True)
-        with st.form("f_k"):
-            tgl = st.date_input("Tanggal"); keg = st.text_input("Acara"); pes = st.number_input("Peserta", 0)
-            if st.form_submit_button("Simpan"):
-                df = load_data("kegiatan", ["Tanggal", "Kegiatan", "Peserta"])
-                new = pd.DataFrame([[str(tgl), keg, pes]], columns=df.columns)
-                save_data(pd.concat([df, new], ignore_index=True), "kegiatan"); st.rerun()
+        st.markdown("<h1 class='main-header'>📅 Laporan Kegiatan</h1>", unsafe_allow_html=True)
+        df_k = load_data("kegiatan", ["Tanggal", "Kegiatan", "Peserta", "Keterangan"])
+        with st.form("form_keg"):
+            tgl = st.date_input("Tanggal")
+            keg = st.text_input("Nama Acara/Kegiatan")
+            pes = st.number_input("Jumlah Peserta", min_value=0)
+            ket = st.text_area("Keterangan")
+            if st.form_submit_button("➕ Simpan Kegiatan"):
+                if keg:
+                    # Fix ValueError: Pastikan jumlah kolom sama
+                    new_data = pd.DataFrame([[str(tgl), keg, pes, ket]], columns=df_k.columns)
+                    df_k = pd.concat([df_k, new_data], ignore_index=True)
+                    save_data(df_k, "kegiatan")
+                    st.success("Kegiatan Dicatat!"); st.rerun()
+        st.dataframe(df_k, use_container_width=True)
+
+    # MENU LAIN (PASIEN & KELOLA)
+    elif menu == "📝 Input Pasien":
+        st.markdown("<h1 class='main-header'>📝 Registrasi Pasien</h1>", unsafe_allow_html=True)
+        df_s = load_data("siswa", ["nama_siswa", "kelas"])
+        df_p = load_data("pasien", ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"])
+        
+        with st.expander("➕ Tambah Master Data Siswa"):
+            with st.form("f_siswa"):
+                ns = st.text_input("Nama Siswa")
+                ks = st.text_input("Kelas (Contoh: X-A)")
+                if st.form_submit_button("Simpan Siswa"):
+                    df_s = pd.concat([df_s, pd.DataFrame([[ns, ks]], columns=df_s.columns)], ignore_index=True)
+                    save_data(df_s, "siswa"); st.rerun()
+
+        with st.form("f_pasien"):
+            nama = st.selectbox("Pilih Nama Siswa", df_s['nama_siswa'].tolist() if not df_s.empty else ["Kosong"])
+            kel = st.text_area("Keluhan")
+            tin = st.text_input("Tindakan")
+            if st.form_submit_button("➕ Catat Kunjungan"):
+                kls = df_s[df_s['nama_siswa'] == nama]['kelas'].values[0] if not df_s.empty else "-"
+                new_p = pd.DataFrame([[datetime.now().strftime("%Y-%m-%d %H:%M"), nama, kls, kel, tin]], columns=df_p.columns)
+                save_data(pd.concat([df_p, new_p], ignore_index=True), "pasien")
+                st.success("Kunjungan Dicatat!"); st.rerun()
 
     elif menu == "📥 Kelola Data":
-        st.markdown("<h1 class='main-header'>Hapus Data</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 class='main-header'>📥 Hapus & Ekspor Data</h1>", unsafe_allow_html=True)
         for k in ["pasien", "stok", "kegiatan"]:
-            d = load_data(k, [])
+            d = load_data(k, ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"] if k=="pasien" else [])
             if not d.empty:
-                st.write(f"Data {k}")
-                idx = st.selectbox(f"Pilih baris {k}", d.index)
-                if st.button(f"Hapus {k}"):
-                    save_data(d.drop(idx), k); st.rerun()
+                st.write(f"Data {k.capitalize()}")
+                if st.button(f"🗑️ Hapus Baris Terakhir {k}"):
+                    save_data(d[:-1], k); st.rerun()
                 st.dataframe(d)
 
 st.markdown("---")
-st.caption("© 2026 UKS MAN 1 Kota Sukabumi")
+st.caption("© 2026 MAN 1 Kota Sukabumi | Terintegrasi Dashboard UKS")
