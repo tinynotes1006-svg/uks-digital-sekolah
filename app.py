@@ -189,13 +189,28 @@ else:
                     file_name = "No Photo"
                     
                     if uploaded_file is not None:
-                        # Buat nama file unik: foto_20240101_123000.png
-                        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                        file_name = f"foto_{timestamp}_{uploaded_file.name.replace(' ', '_')}"
+                        # 1. Bersihkan nama kegiatan dari karakter yang dilarang di nama file (seperti / \ : * ? " < > |)
+                        import re
+                        keg_clean = re.sub(r'[^\w\s-]', '', keg).strip().replace(' ', '_')
                         
-                        # Simpan file ke folder 'uploads'
+                        # 2. Ambil ekstensi file asli (.png atau .jpg)
+                        extension = os.path.splitext(uploaded_file.name)[1]
+                        
+                        # 3. Gabungkan Tanggal + Nama Kegiatan
+                        # Hasilnya misal: 2024-05-20_Pemeriksaan_Berkala.png
+                        file_name = f"{tgl}_{keg_clean}{extension}"
+                        
+                        # Simpan ke folder uploads
                         with open(os.path.join("uploads", file_name), "wb") as f:
                             f.write(uploaded_file.getbuffer())
+                    
+                    # Simpan data ke DataFrame
+                    new_row = pd.DataFrame([[str(tgl), keg, pes, ket, file_name]], columns=df_k.columns)
+                    df_updated = pd.concat([df_k, new_row], ignore_index=True)
+                    save_data(df_updated, "kegiatan")
+                    
+                    st.success(f"✅ Berhasil! Foto disimpan sebagai: {file_name}")
+                    st.rerun()
                     
                     # Membuat baris baru (Pastikan kolom pas dengan load_data)
                     new_row = pd.DataFrame([[str(tgl), keg, pes, ket, file_name]], columns=df_k.columns)
