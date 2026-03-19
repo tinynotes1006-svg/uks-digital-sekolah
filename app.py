@@ -1,25 +1,12 @@
 import streamlit as st
-import pandas as pd
-import os
-from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
-
-# Inisialisasi Koneksi ke Google Sheets
-conn = st.connection("gsheets", type=GSheetsConnection)
-
-def load_data_cloud(worksheet_name):
-    # Mengambil data dari Google Sheets secara otomatis
-    return conn.read(worksheet=worksheet_name, ttl="0")
-
-def save_data_cloud(df, worksheet_name):
-    # Menulis data ke Google Sheets secara otomatis
-    conn.update(worksheet=worksheet_name, data=df)
-    st.cache_data.clear() # Membersihkan cache agar data terbaru langsung muncul
+import pandas as pd
+from datetime import datetime
 
 # 1. KONFIGURASI HALAMAN
 st.set_page_config(page_title="UKS Digital MAN 1", page_icon="🏥", layout="wide")
 
-# 2. CSS CUSTOM
+# 2. CSS MODERN
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
@@ -35,37 +22,34 @@ st.markdown("""
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-top: 4px solid #10b981;
         text-align: center;
     }
+    .login-box {
+        background: white; padding: 40px; border-radius: 24px; width: 400px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); text-align: center;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. FUNGSI DATABASE
-FILES = {
-    "pasien": "data_pasien.csv", 
-    "stok": "data_obat.csv", 
-    "kegiatan": "data_kegiatan.csv", 
-    "siswa": "db_siswa.csv"
-}
+# 3. KONEKSI GOOGLE SHEETS
+# Pastikan st.secrets sudah diisi di Dashboard Streamlit Cloud
+conn = st.connection("gsheets", type=GSheetsConnection)
 
-def load_data(key):
-    # Kolom default untuk setiap file jika file belum ada
-    cols_map = {
-        "pasien": ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"],
-        "stok": ["Obat", "Stok", "Satuan"],
-        "kegiatan": ["Tanggal", "Kegiatan", "Peserta", "Keterangan"],
-        "siswa": ["nama_siswa", "kelas"]
-    }
-    cols = cols_map.get(key, [])
-    
-    if os.path.exists(FILES[key]):
-        try:
-            df = pd.read_csv(FILES[key])
-            if list(df.columns) != cols: return pd.DataFrame(columns=cols)
-            return df
-        except: return pd.DataFrame(columns=cols)
-    return pd.DataFrame(columns=cols)
+def load_data(sheet_name):
+    try:
+        # ttl="0" memastikan data selalu fresh (tidak tersimpan di cache lama)
+        return conn.read(worksheet=sheet_name, ttl="0")
+    except:
+        # Jika sheet kosong/error, return dataframe kosong sesuai kolomnya
+        cols = {
+            "pasien": ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"],
+            "stok": ["Obat", "Stok", "Satuan"],
+            "kegiatan": ["Tanggal", "Kegiatan", "Peserta", "Keterangan"],
+            "siswa": ["nama_siswa", "kelas"]
+        }
+        return pd.DataFrame(columns=cols.get(sheet_name, []))
 
-def save_data(df, key):
-    df.to_csv(FILES[key], index=False)
+def save_data(df, sheet_name):
+    conn.update(worksheet=sheet_name, data=df)
+    st.cache_data.clear()
 
 def get_list_kelas():
     return [f"{tk}-{chr(i)}" for tk in ["X", "XI", "XII"] for i in range(ord('A'), ord('K'))]
@@ -80,12 +64,10 @@ if not st.session_state.auth:
         st.markdown('<div class="login-box">', unsafe_allow_html=True)
         st.image("logo_uks.png", width=120) 
         st.markdown("<h2 style='color:#064e3b;'>MAN 1 KOTA SUKABUMI</h2>", unsafe_allow_html=True)
-        st.markdown("<div class='sekolah-sub-login'>SISTEM UKS DIGITAL</div>", unsafe_allow_html=True)
-        
-        user = st.text_input("Username", placeholder="Username")
-        pw = st.text_input("Password", type="password", placeholder="password")
+        user = st.text_input("Username", placeholder="adminuks")
+        pw = st.text_input("Password", type="password")
         if st.button("Masuk", use_container_width=True):
-            if user == "adminuks" and pw == "123456":
+            if user == "adminuks" and pw == "man1sukabumi":
                 st.session_state.auth = True
                 st.rerun()
             else: st.error("Akses Ditolak")
@@ -96,16 +78,16 @@ else:
     with st.sidebar:
         st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
         st.image("logo_sekolah.png", width=80) 
-        st.markdown("<h4 style='color:#064e3b;'>MAN 1 KOTA SUKABUMI</h4></div>______________", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#064e3b;'>MAN 1 SUKABUMI</h4></div>---", unsafe_allow_html=True)
         menu = st.radio("Menu Utama:", ["📊 Dashboard", "📝 Input Pasien", "💊 Stok Obat", "📅 Kegiatan", "📥 Kelola Data"])
-        if st.button("🚪 Keluar Sistem"):
+        if st.button("🚪 Keluar"):
             st.session_state.auth = False
             st.rerun()
 
     # 6. DASHBOARD
     if menu == "📊 Dashboard":
         c_h1, c_h2 = st.columns([0.1, 0.9])
-        with c_h1: st.image("logo_uks.png", width=110)
+        with c_h1: st.image("logo_uks.png", width=60)
         with c_h2: st.markdown("<h1 class='main-header'>Dashboard UKS Digital</h1>", unsafe_allow_html=True)
         
         df_p = load_data("pasien")
@@ -123,7 +105,7 @@ else:
             chart_data = df_p.dropna(subset=['Waktu']).groupby(df_p['Waktu'].dt.date).size()
             st.area_chart(chart_data, color="#10b981")
 
-    # 7. INPUT PASIEN (REAKTIF)
+    # 7. INPUT PASIEN (REAKTIF & CLOUD)
     elif menu == "📝 Input Pasien":
         st.markdown("<h1 class='main-header'>📝 Registrasi Pasien</h1>", unsafe_allow_html=True)
         df_s = load_data("siswa")
@@ -135,8 +117,9 @@ else:
                 ks = st.selectbox("Kelas", get_list_kelas())
                 if st.form_submit_button("Daftarkan Siswa"):
                     if ns:
-                        df_s = pd.concat([df_s, pd.DataFrame([[ns, ks]], columns=df_s.columns)], ignore_index=True)
-                        save_data(df_s, "siswa"); st.success("Siswa Terdaftar!"); st.rerun()
+                        new_s = pd.DataFrame([[ns, ks]], columns=df_s.columns)
+                        save_data(pd.concat([df_s, new_s], ignore_index=True), "siswa")
+                        st.success("Siswa Terdaftar di Cloud!"); st.rerun()
 
         st.subheader("Input Kunjungan")
         pilih_kls = st.selectbox("1. Pilih Kelas", get_list_kelas())
@@ -151,7 +134,7 @@ else:
                     wkt = datetime.now().strftime("%Y-%m-%d %H:%M")
                     new_p = pd.DataFrame([[wkt, n_psn, pilih_kls, kel, tin]], columns=df_p.columns)
                     save_data(pd.concat([df_p, new_p], ignore_index=True), "pasien")
-                    st.success("Tersimpan!"); st.rerun()
+                    st.success("Tersimpan ke Google Sheets!"); st.rerun()
             else:
                 st.warning(f"Belum ada siswa di kelas {pilih_kls}")
                 st.form_submit_button("Simpan", disabled=True)
@@ -167,8 +150,9 @@ else:
             with c3: us = st.selectbox("Satuan", ["Tablet", "Strip", "Pcs", "Botol", "Tube", "Sachet", "Kapsul", "Kaplet", "Pot", "Box", "Blister", "mL", "Unit"])
             if st.form_submit_button("➕ Simpan Stok"):
                 if on:
-                    df_o = pd.concat([df_o, pd.DataFrame([[on, js, us]], columns=df_o.columns)], ignore_index=True)
-                    save_data(df_o, "stok"); st.success("Stok Terupdate!"); st.rerun()
+                    new_o = pd.DataFrame([[on, js, us]], columns=df_o.columns)
+                    save_data(pd.concat([df_o, new_o], ignore_index=True), "stok")
+                    st.success("Stok Terupdate di Cloud!"); st.rerun()
         st.dataframe(df_o, use_container_width=True)
 
     # 9. KEGIATAN
@@ -182,45 +166,26 @@ else:
             ket = st.text_area("Keterangan")
             if st.form_submit_button("➕ Simpan Kegiatan"):
                 if keg:
-                    df_k = pd.concat([df_k, pd.DataFrame([[str(tgl), keg, pes, ket]], columns=df_k.columns)], ignore_index=True)
-                    save_data(df_k, "kegiatan"); st.success("Kegiatan Dicatat!"); st.rerun()
+                    new_k = pd.DataFrame([[str(tgl), keg, pes, ket]], columns=df_k.columns)
+                    save_data(pd.concat([df_k, new_k], ignore_index=True), "kegiatan")
+                    st.success("Kegiatan Dicatat!"); st.rerun()
         st.dataframe(df_k, use_container_width=True)
 
-    # 10. KELOLA DATA (BISA UNDUH SEMUA)
+    # 10. KELOLA DATA
     elif menu == "📥 Kelola Data":
         st.markdown("<h1 class='main-header'>📥 Kelola & Unduh Data</h1>", unsafe_allow_html=True)
-        st.info("Di sini Anda dapat mengunduh semua database UKS atau menghapus data yang salah.")
+        tabs = st.tabs(["🏥 Pasien", "💊 Stok", "📅 Kegiatan", "👥 Siswa"])
         
-        # Grid layout untuk kartu download
-        tabs = st.tabs(["🏥 Data Pasien", "💊 Data Stok", "📅 Data Kegiatan", "👥 Data Siswa"])
-        
-        with tabs[0]:
-            d_pasien = load_data("pasien")
-            st.download_button("📥 Download Data Pasien (.csv)", d_pasien.to_csv(index=False), "data_pasien.csv", "text/csv")
-            if st.button("🗑️ Hapus Baris Terakhir Pasien"):
-                save_data(d_pasien[:-1], "pasien"); st.rerun()
-            st.dataframe(d_pasien, use_container_width=True)
-
-        with tabs[1]:
-            d_stok = load_data("stok")
-            st.download_button("📥 Download Data Stok (.csv)", d_stok.to_csv(index=False), "data_stok.csv", "text/csv")
-            if st.button("🗑️ Hapus Baris Terakhir Stok"):
-                save_data(d_stok[:-1], "stok"); st.rerun()
-            st.dataframe(d_stok, use_container_width=True)
-
-        with tabs[2]:
-            d_keg = load_data("kegiatan")
-            st.download_button("📥 Download Data Kegiatan (.csv)", d_keg.to_csv(index=False), "data_kegiatan.csv", "text/csv")
-            if st.button("🗑️ Hapus Baris Terakhir Kegiatan"):
-                save_data(d_keg[:-1], "kegiatan"); st.rerun()
-            st.dataframe(d_keg, use_container_width=True)
-
-        with tabs[3]:
-            d_siswa = load_data("siswa")
-            st.download_button("📥 Download Database Siswa (.csv)", d_siswa.to_csv(index=False), "db_siswa.csv", "text/csv")
-            if st.button("🗑️ Hapus Baris Terakhir Siswa"):
-                save_data(d_siswa[:-1], "siswa"); st.rerun()
-            st.dataframe(d_siswa, use_container_width=True)
+        keys = ["pasien", "stok", "kegiatan", "siswa"]
+        for i, k in enumerate(keys):
+            with tabs[i]:
+                df = load_data(k)
+                st.download_button(f"📥 Download {k}.csv", df.to_csv(index=False), f"{k}.csv", "text/csv")
+                if st.button(f"🗑️ Hapus Baris Terakhir {k.capitalize()}"):
+                    if not df.empty:
+                        save_data(df[:-1], k)
+                        st.rerun()
+                st.dataframe(df, use_container_width=True)
 
 st.markdown("---")
-st.caption("© 2026 MAN 1 Kota Sukabumi | UKS Digital System")
+st.caption("© 2026 MAN 1 Kota Sukabumi | UKS Digital Cloud System")
