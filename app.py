@@ -149,29 +149,37 @@ else:
                     st.success("Kegiatan Dicatat!"); st.rerun()
         st.dataframe(df_k, use_container_width=True)
 
-    # MENU LAIN (PASIEN & KELOLA)
-    elif menu == "📝 Input Pasien":
-        st.markdown("<h1 class='main-header'>📝 Registrasi Pasien</h1>", unsafe_allow_html=True)
-        df_s = load_data("siswa", ["nama_siswa", "kelas"])
-        df_p = load_data("pasien", ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"])
+   # FORM 2: INPUT KUNJUNGAN (Filter Dinamis)
+    st.subheader("Catat Kunjungan Baru")
+    with st.form("f_kunjungan", clear_on_submit=True):
+        # 1. Pilih Kelas terlebih dahulu
+        pilih_kelas = st.selectbox("1. Pilih Kelas", get_list_kelas())
         
-        with st.expander("➕ Tambah Master Data Siswa"):
-            with st.form("f_siswa"):
-                ns = st.text_input("Nama Siswa")
-                ks = st.text_input("Kelas (Contoh: X-A)")
-                if st.form_submit_button("Simpan Siswa"):
-                    df_s = pd.concat([df_s, pd.DataFrame([[ns, ks]], columns=df_s.columns)], ignore_index=True)
-                    save_data(df_s, "siswa"); st.rerun()
-
-        with st.form("f_pasien"):
-            nama = st.selectbox("Pilih Nama Siswa", df_s['nama_siswa'].tolist() if not df_s.empty else ["Kosong"])
-            kel = st.text_area("Keluhan")
-            tin = st.text_input("Tindakan")
-            if st.form_submit_button("➕ Catat Kunjungan"):
-                kls = df_s[df_s['nama_siswa'] == nama]['kelas'].values[0] if not df_s.empty else "-"
-                new_p = pd.DataFrame([[datetime.now().strftime("%Y-%m-%d %H:%M"), nama, kls, kel, tin]], columns=df_p.columns)
-                save_data(pd.concat([df_p, new_p], ignore_index=True), "pasien")
-                st.success("Kunjungan Dicatat!"); st.rerun()
+        # 2. Filter nama siswa berdasarkan kelas yang dipilih
+        if not df_s.empty:
+            daftar_nama = df_s[df_s['kelas'] == pilih_kelas]['nama_siswa'].unique().tolist()
+        else:
+            daftar_nama = []
+        
+        # 3. Tampilkan pilihan nama (atau pesan jika kosong)
+        if daftar_nama:
+            nama_pasien = st.selectbox("2. Pilih Nama Siswa", sorted(daftar_nama))
+            keluhan = st.text_area("3. Keluhan / Sakit")
+            tindakan = st.text_input("4. Tindakan (Contoh: Istirahat / Kasih Obat)")
+            
+            submit_pasien = st.form_submit_button("➕ Simpan Kunjungan")
+            
+            if submit_pasien:
+                if keluhan:
+                    waktu_skrg = datetime.now().strftime("%Y-%m-%d %H:%M")
+                    new_entry = pd.DataFrame([[waktu_skrg, nama_pasien, pilih_kelas, keluhan, tindakan]], columns=df_p.columns)
+                    df_p = pd.concat([df_p, new_entry], ignore_index=True)
+                    save_data(df_p, "pasien")
+                    st.success(f"Data kunjungan {nama_pasien} berhasil disimpan!")
+                    st.balloons()
+        else:
+            st.warning(f"Belum ada data siswa untuk kelas {pilih_kelas}. Silakan tambah siswa di menu atas.")
+            st.form_submit_button("Simpan Kunjungan", disabled=True)
 
     elif menu == "📥 Kelola Data":
         st.markdown("<h1 class='main-header'>📥 Hapus & Ekspor Data</h1>", unsafe_allow_html=True)
