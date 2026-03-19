@@ -34,11 +34,11 @@ FILES = {
 }
 
 def load_data(key):
-    # Kolom default untuk setiap file jika file belum ada
+    # Definisi kolom yang benar
     cols_map = {
         "pasien": ["Waktu", "Nama", "Kelas", "Keluhan", "Tindakan"],
         "stok": ["Obat", "Stok", "Satuan"],
-        "kegiatan": ["Tanggal", "Kegiatan", "Peserta", "Keterangan"],
+        "kegiatan": ["Tanggal", "Kegiatan", "Peserta", "Keterangan", "Foto"],
         "siswa": ["nama_siswa", "kelas"]
     }
     cols = cols_map.get(key, [])
@@ -46,9 +46,15 @@ def load_data(key):
     if os.path.exists(FILES[key]):
         try:
             df = pd.read_csv(FILES[key])
-            if list(df.columns) != cols: return pd.DataFrame(columns=cols)
-            return df
-        except: return pd.DataFrame(columns=cols)
+            # CEK KOLOM: Jika ada kolom yang kurang (seperti 'Foto'), tambahkan otomatis
+            for col in cols:
+                if col not in df.columns:
+                    df[col] = "No Photo" 
+            
+            # Kembalikan dataframe dengan urutan kolom yang benar sesuai cols_map
+            return df[cols]
+        except:
+            return pd.DataFrame(columns=cols)
     return pd.DataFrame(columns=cols)
 
 def save_data(df, key):
@@ -158,11 +164,11 @@ else:
                     save_data(df_o, "stok"); st.success("Stok Terupdate!"); st.rerun()
         st.dataframe(df_o, use_container_width=True)
 
-    # 9. KEGIATAN (Versi Perbaikan dengan Auto-Create Folder)
+   # 9. KEGIATAN
     elif menu == "📅 Kegiatan":
         st.markdown("<h1 class='main-header'>📅 Laporan Kegiatan</h1>", unsafe_allow_html=True)
         
-        # Pastikan folder 'uploads' tersedia sebelum proses simpan
+        # Pastikan folder foto ada
         if not os.path.exists("uploads"):
             os.makedirs("uploads")
             
@@ -172,60 +178,58 @@ else:
             tgl = st.date_input("Tanggal")
             keg = st.text_input("Nama Kegiatan")
             pes = st.number_input("Jumlah Peserta", min_value=0)
-            ket = st.text_area("Keterangan/Detail Kegiatan")
+            ket = st.text_area("Keterangan Kegiatan")
             
-            # Input untuk Upload Foto
-            uploaded_file = st.file_uploader("Upload Dokumentasi (JPG/PNG)", type=["jpg", "jpeg", "png"])
+            # Widget Upload Foto
+            uploaded_file = st.file_uploader("Pilih Foto Dokumentasi (JPG/PNG)", type=["jpg", "jpeg", "png"])
             
             if st.form_submit_button("➕ Simpan Kegiatan"):
                 if keg:
                     file_name = "No Photo"
                     
                     if uploaded_file is not None:
-                        # Membuat nama file unik agar tidak menimpa file lama
+                        # Buat nama file unik: foto_20240101_123000.png
                         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                         file_name = f"foto_{timestamp}_{uploaded_file.name.replace(' ', '_')}"
                         
-                        # Proses penyimpanan file ke folder uploads
-                        file_path = os.path.join("uploads", file_name)
-                        with open(file_path, "wb") as f:
+                        # Simpan file ke folder 'uploads'
+                        with open(os.path.join("uploads", file_name), "wb") as f:
                             f.write(uploaded_file.getbuffer())
                     
-                    # Menambahkan data ke DataFrame (Pastikan urutan kolom sesuai)
-                    # Kolom: ["Tanggal", "Kegiatan", "Peserta", "Keterangan", "Foto"]
-                    new_data = pd.DataFrame([[str(tgl), keg, pes, ket, file_name]], columns=df_k.columns)
-                    df_k = pd.concat([df_k, new_data], ignore_index=True)
+                    # Membuat baris baru (Pastikan kolom pas dengan load_data)
+                    new_row = pd.DataFrame([[str(tgl), keg, pes, ket, file_name]], columns=df_k.columns)
                     
-                    save_data(df_k, "kegiatan")
-                    st.success(f"✅ Kegiatan '{keg}' Berhasil Disimpan!")
+                    # Gabungkan dan simpan
+                    df_updated = pd.concat([df_k, new_row], ignore_index=True)
+                    save_data(df_updated, "kegiatan")
+                    
+                    st.success("✅ Data dan Foto Berhasil Disimpan!")
                     st.rerun()
                 else:
-                    st.error("Nama kegiatan tidak boleh kosong!")
+                    st.warning("⚠️ Nama kegiatan tidak boleh kosong.")
 
         st.markdown("---")
-        st.subheader("📋 Riwayat & Dokumentasi Kegiatan")
+        st.subheader("📋 Riwayat Kegiatan")
         
         if not df_k.empty:
-            # Menampilkan data dalam bentuk kartu expander agar lebih rapi
-            for index, row in df_k.iloc[::-1].iterrows(): # Menampilkan dari yang terbaru
-                with st.expander(f"📅 {row['Tanggal']} - {row['Kegiatan']}"):
-                    col_img, col_txt = st.columns([1, 2])
+            # Tampilkan data terbaru di urutan paling atas (iloc[::-1])
+            for index, row in df_k.iloc[::-1].iterrows():
+                with st.expander(f"{row['Tanggal']} - {row['Kegiatan']}"):
+                    col_foto, col_info = st.columns([1, 2])
                     
-                    with col_img:
-                        # Cek apakah ada foto dan apakah filenya benar-benar ada di folder
-                        photo_path = os.path.join("uploads", str(row['Foto']))
-                        if row['Foto'] != "No Photo" and os.path.exists(photo_path):
-                            st.image(photo_path, caption=f"Dokumentasi {row['Kegiatan']}", use_container_width=True)
+                    with col_foto:
+                        path_foto = os.path.join("uploads", str(row['Foto']))
+                        if row['Foto'] != "No Photo" and os.path.exists(path_foto):
+                            st.image(path_foto, use_container_width=True)
                         else:
-                            st.warning("📷 Tidak ada foto dokumentasi")
-                            
-                    with col_txt:
-                        st.write(f"**Jumlah Peserta:** {row['Peserta']} orang")
+                            st.caption("📷 Tidak ada dokumentasi.")
+                    
+                    with col_info:
+                        st.write(f"**Peserta:** {row['Peserta']} orang")
                         st.write(f"**Keterangan:**")
                         st.info(row['Keterangan'] if row['Keterangan'] else "-")
         else:
-            st.info("Belum ada data kegiatan yang tercatat.")
-
+            st.info("Belum ada data kegiatan.")
     # 10. KELOLA DATA (BISA UNDUH SEMUA)
     elif menu == "📥 Kelola Data":
         st.markdown("<h1 class='main-header'>📥 Kelola & Unduh Data</h1>", unsafe_allow_html=True)
