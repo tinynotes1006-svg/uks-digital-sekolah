@@ -28,7 +28,6 @@ st.markdown("""
     .login-box {
         background: white; padding: 2rem; border-radius: 20px;
         text-align: center;
-        border: 1px solid #e2e8f0;
     }
     </style>
     """, unsafe_allow_html=True)
