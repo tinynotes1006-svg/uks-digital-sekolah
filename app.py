@@ -25,10 +25,6 @@ st.markdown("""
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-top: 4px solid #10b981;
         text-align: center;
     }
-    .login-box {
-        background: white; padding: 2rem; border-radius: 20px;
-        text-align: center;
-    }
     </style>
     """, unsafe_allow_html=True)
 
