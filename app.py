@@ -101,8 +101,8 @@ def save(df, sheet):
 
 # ================= USER =================
 USERS = {
-    "admin": {"password": "admin123", "role": "admin"},
-    "petugas": {"password": "uks123", "role": "user"}
+    "adminuks": {"password": "man1kotsiadmin", "role": "admin"},
+    "useruks": {"password": "man1kotsiuser", "role": "user"}
 }
 
 # ================= LOGIN =================
