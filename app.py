@@ -384,38 +384,54 @@ else:
         st.markdown('</div>', unsafe_allow_html=True)
 
     # ===== KELOLA =====
-    elif choice == "📥 Kelola Data":
-
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown("### 📥 Kelola Data")
+   elif choice == "Kelola Data":
 
         tabel = st.selectbox("Pilih Tabel", ["siswa","pasien","kesehatan","stok","kegiatan"])
         df = load(tabel)
 
         st.dataframe(df)
 
-    # ===== EDIT DATA =====
         st.markdown("### ✏️ Edit Data")
 
         if not df.empty:
-            index = st.number_input("Pilih Index Baris", 0, len(df)-1, 0)
+            index = st.number_input("Index", 0, len(df)-1, 0)
 
             row = df.iloc[index]
             updated = {}
 
             for col in df.columns:
-                updated[col] = st.text_input(col, value=str(row[col]))
+                updated[col] = st.text_input(col, str(row[col]), key=f"edit_{col}")
 
-            if st.button("Simpan Perubahan"):
+            col1, col2 = st.columns(2)
+
+            # ===== UPDATE =====
+            if col1.button("💾 Simpan"):
                 for col in df.columns:
                     df.at[index, col] = updated[col]
 
                 save(df, tabel)
-                st.success("Data berhasil diupdate")
+                st.success("Berhasil update")
                 st.rerun()
 
-        st.markdown('</div>', unsafe_allow_html=True)
+            # ===== DELETE =====
+            if col2.button("🗑️ Hapus"):
+                st.session_state.konfirmasi_hapus = True
 
+            if st.session_state.konfirmasi_hapus:
+                st.warning("Yakin hapus data?")
+
+                c1, c2 = st.columns(2)
+
+                if c1.button("YA"):
+                    df = df.drop(index).reset_index(drop=True)
+                    save(df, tabel)
+
+                    st.success("Data dihapus")
+                    st.session_state.konfirmasi_hapus = False
+                    st.rerun()
+
+                if c2.button("BATAL"):
+                    st.session_state.konfirmasi_hapus = False
 # ================= FOOTER =================
 st.markdown("---")
 st.caption("© 2026 Sistem UKS Digital MAN 1 Kota Sukabumi")
