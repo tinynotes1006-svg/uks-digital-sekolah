@@ -207,38 +207,37 @@ else:
         col3.metric("Stok Obat", len(load("stok")))
 
     # ===== INPUT PASIEN =====
-        if choice == "Input Pasien":
+    elif choice == "📝 Input Pasien":
+
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown("### 📝 Input Pasien")
+
+        if st.session_state.get("notif_pasien"):
+            st.success("✅ Data berhasil disimpan")
+            st.session_state.notif_pasien = False
 
         df_s = load("siswa")
         df_p = load("pasien")
 
-        tanggal = st.date_input("Tanggal", key="tgl_pasien")
-        jam = st.time_input("Jam", key="jam_pasien")
+        tanggal = st.date_input("Tanggal")
+        jam = st.time_input("Jam")
 
-        kelas = st.selectbox("Kelas", sorted(df_s["kelas"].dropna().unique()), key="kelas_pasien")
-        nama = st.selectbox("Nama", df_s[df_s["kelas"]==kelas]["nama_siswa"], key="nama_pasien")
+        kelas = st.selectbox("Kelas", sorted(df_s["kelas"].dropna().unique()))
+        nama = st.selectbox("Nama", df_s[df_s["kelas"]==kelas]["nama_siswa"])
 
-        keluhan = st.text_input("Keluhan", key="keluhan_pasien")
-        tindakan = st.text_input("Tindakan", key="tindakan_pasien")
+        keluhan = st.text_input("Keluhan")
+        tindakan = st.text_input("Tindakan")
 
         if st.button("Simpan"):
             waktu = f"{tanggal} {jam}"
             new = pd.DataFrame([[waktu,nama,kelas,keluhan,tindakan]], columns=df_p.columns)
-
             df_p = pd.concat([df_p,new], ignore_index=True)
             save(df_p, "pasien")
 
-            st.success("Data tersimpan")
-
-            # ✅ RESET FORM AMAN
-            for key in [
-                "tgl_pasien","jam_pasien","kelas_pasien",
-                "nama_pasien","keluhan_pasien","tindakan_pasien"
-            ]:
-                if key in st.session_state:
-                    del st.session_state[key]
-
+            st.session_state.notif_pasien = True
             st.rerun()
+
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # ===== DATA KESEHATAN =====
     elif choice == "🩺 Data Kesehatan":
@@ -405,12 +404,9 @@ else:
             updated = {}
 
             for col in df.columns:
-                updated[col] = st.text_input(col, value=str(row[col]), key=f"edit_{col}")
+                updated[col] = st.text_input(col, value=str(row[col]))
 
-            col1, col2 = st.columns(2)
-
-            # ===== UPDATE =====
-            if col1.button("💾 Simpan Perubahan"):
+            if st.button("Simpan Perubahan"):
                 for col in df.columns:
                     df.at[index, col] = updated[col]
 
@@ -418,27 +414,7 @@ else:
                 st.success("Data berhasil diupdate")
                 st.rerun()
 
-            # ===== DELETE =====
-            if col2.button("🗑️ Hapus Data"):
-                st.session_state.konfirmasi_hapus = True
-
-            # ===== KONFIRMASI =====
-            if st.session_state.get("konfirmasi_hapus"):
-                st.warning("Yakin mau hapus data ini?")
-
-                c1, c2 = st.columns(2)
-
-                if c1.button("YA, HAPUS"):
-                    df = df.drop(index)
-                    df = df.reset_index(drop=True)
-                    save(df, tabel)
-
-                    st.success("Data berhasil dihapus")
-                    st.session_state.konfirmasi_hapus = False
-                    st.rerun()
-
-                if c2.button("BATAL"):
-                    st.session_state.konfirmasi_hapus = False
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # ================= FOOTER =================
 st.markdown("---")
