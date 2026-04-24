@@ -384,7 +384,7 @@ else:
         st.markdown('</div>', unsafe_allow_html=True)
 
     # ===== KELOLA =====
-    elif choice == "Kelola Data":
+    elif choice == "📥 Kelola Data":
 
         tabel = st.selectbox("Pilih Tabel", ["siswa","pasien","kesehatan","stok","kegiatan"])
         df = load(tabel)
