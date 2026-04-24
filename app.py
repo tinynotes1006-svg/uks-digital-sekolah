@@ -49,6 +49,8 @@ if "auth" not in st.session_state:
     st.session_state.auth = False
 if "role" not in st.session_state:
     st.session_state.role = ""
+if "konfirmasi_hapus" not in st.session_state:
+    st.session_state.konfirmasi_hapus = False
 
 # ================= STYLE =================
 def set_style(login=False):
