@@ -3,7 +3,39 @@ from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 import os
 import base64
+import tempfile
+from supabase import create_client, Client
 
+SUPABASE_URL = "https://bvyvrdgzlwdoyborjkmm.supabase.co"
+SUPABASE_KEY = "sb_publishable_Mqyisyq-DpjDWzUTH21Ykg_JPS_Ia3z"
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+def upload_to_supabase(file):
+    try:
+        if file is None:
+            return ""
+
+        file_bytes = file.read()
+        file_name = f"{int(pd.Timestamp.now().timestamp())}_{file.name}"
+
+        res = supabase.storage.from_("kegiatan").upload(
+            file_name,
+            file_bytes
+        )
+
+        # cek error
+        if isinstance(res, dict) and res.get("error"):
+            st.error(f"Gagal upload: {res['error']}")
+            return ""
+
+        public_url = supabase.storage.from_("kegiatan").get_public_url(file_name)
+
+        return public_url
+
+    except Exception as e:
+        st.error(f"Gagal upload: {e}")
+        return ""
+    
 # ================= CONFIG =================
 st.set_page_config(page_title="UKS Digital", layout="wide")
 
@@ -295,7 +327,10 @@ else:
         st.markdown("### 📅 Kegiatan")
 
         df = load("kegiatan")
-
+        if "foto" not in df.columns:
+            df["foto"] = ""
+        df["foto"] = df["foto"].fillna("")
+           
         tanggal = st.date_input("Tanggal")
         jam = st.time_input("Jam")
 
@@ -303,16 +338,49 @@ else:
         peserta = st.text_input("Peserta")
         ket = st.text_area("Keterangan")
 
+        foto = st.file_uploader("Upload Foto", type=["jpg","png","jpeg"])
+
         if st.button("Simpan"):
             waktu = f"{tanggal} {jam}"
-            new = pd.DataFrame([[waktu,kegiatan,peserta,ket]], columns=df.columns)
-            df = pd.concat([df,new], ignore_index=True)
+
+            link_foto = ""
+            if foto is not None:
+                with st.spinner("Upload ke Supabase..."):
+                    link_foto = upload_to_supabase(foto)
+
+            new = pd.DataFrame([{
+                "waktu": waktu,
+                "kegiatan": kegiatan,
+                "peserta": peserta,
+                "ket": ket,
+                "foto": link_foto
+            }])
+            
+
+            df = pd.concat([df, new], ignore_index=True)
             save(df, "kegiatan")
 
-            st.success("Tersimpan")
+            st.success("Tersimpan + Foto berhasil diupload")
             st.rerun()
 
-        st.dataframe(df)
+        # TAMPILKAN DATA + GAMBAR
+        st.markdown("### 📸 Data Kegiatan")
+
+        for i, row in df.iterrows():
+            st.markdown(f"""
+            **{row['waktu']}**  
+            📌 {row['kegiatan']}  
+            👥 {row['peserta']}  
+            📝 {row['ket']}
+            """)
+
+            foto = row.get("foto", "")
+
+            if isinstance(foto, str) and foto.strip() != "":
+                st.image(foto, width=250) 
+
+            st.markdown("---")
+
         st.markdown('</div>', unsafe_allow_html=True)
 
     # ===== KELOLA =====
