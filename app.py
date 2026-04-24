@@ -207,14 +207,7 @@ else:
         col3.metric("Stok Obat", len(load("stok")))
 
     # ===== INPUT PASIEN =====
-    elif choice == "📝 Input Pasien":
-
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown("### 📝 Input Pasien")
-
-        if st.session_state.get("notif_pasien"):
-            st.success("✅ Data berhasil disimpan")
-            st.session_state.notif_pasien = False
+        if choice == "Input Pasien":
 
         df_s = load("siswa")
         df_p = load("pasien")
@@ -231,19 +224,21 @@ else:
         if st.button("Simpan"):
             waktu = f"{tanggal} {jam}"
             new = pd.DataFrame([[waktu,nama,kelas,keluhan,tindakan]], columns=df_p.columns)
+
             df_p = pd.concat([df_p,new], ignore_index=True)
             save(df_p, "pasien")
-            # RESET FORM
-            st.session_state.tgl_pasien = None
-            st.session_state.jam_pasien = None
-            st.session_state.kelas_pasien = None
-            st.session_state.nama_pasien = None
-            st.session_state.keluhan_pasien = ""
-            st.session_state.tindakan_pasien = ""
-            st.session_state.notif_pasien = True
-            st.rerun()
 
-        st.markdown('</div>', unsafe_allow_html=True)
+            st.success("Data tersimpan")
+
+            # ✅ RESET FORM AMAN
+            for key in [
+                "tgl_pasien","jam_pasien","kelas_pasien",
+                "nama_pasien","keluhan_pasien","tindakan_pasien"
+            ]:
+                if key in st.session_state:
+                    del st.session_state[key]
+
+            st.rerun()
 
     # ===== DATA KESEHATAN =====
     elif choice == "🩺 Data Kesehatan":
