@@ -219,21 +219,27 @@ else:
         df_s = load("siswa")
         df_p = load("pasien")
 
-        tanggal = st.date_input("Tanggal")
-        jam = st.time_input("Jam")
+        tanggal = st.date_input("Tanggal", key="tgl_pasien")
+        jam = st.time_input("Jam", key="jam_pasien")
 
-        kelas = st.selectbox("Kelas", sorted(df_s["kelas"].dropna().unique()))
-        nama = st.selectbox("Nama", df_s[df_s["kelas"]==kelas]["nama_siswa"])
+        kelas = st.selectbox("Kelas", sorted(df_s["kelas"].dropna().unique()), key="kelas_pasien")
+        nama = st.selectbox("Nama", df_s[df_s["kelas"]==kelas]["nama_siswa"], key="nama_pasien")
 
-        keluhan = st.text_input("Keluhan")
-        tindakan = st.text_input("Tindakan")
+        keluhan = st.text_input("Keluhan", key="keluhan_pasien")
+        tindakan = st.text_input("Tindakan", key="tindakan_pasien")
 
         if st.button("Simpan"):
             waktu = f"{tanggal} {jam}"
             new = pd.DataFrame([[waktu,nama,kelas,keluhan,tindakan]], columns=df_p.columns)
             df_p = pd.concat([df_p,new], ignore_index=True)
             save(df_p, "pasien")
-
+            # RESET FORM
+            st.session_state.tgl_pasien = None
+            st.session_state.jam_pasien = None
+            st.session_state.kelas_pasien = None
+            st.session_state.nama_pasien = None
+            st.session_state.keluhan_pasien = ""
+            st.session_state.tindakan_pasien = ""
             st.session_state.notif_pasien = True
             st.rerun()
 
@@ -404,9 +410,12 @@ else:
             updated = {}
 
             for col in df.columns:
-                updated[col] = st.text_input(col, value=str(row[col]))
+                updated[col] = st.text_input(col, value=str(row[col]), key=f"edit_{col}")
 
-            if st.button("Simpan Perubahan"):
+            col1, col2 = st.columns(2)
+
+            # ===== UPDATE =====
+            if col1.button("💾 Simpan Perubahan"):
                 for col in df.columns:
                     df.at[index, col] = updated[col]
 
@@ -414,7 +423,27 @@ else:
                 st.success("Data berhasil diupdate")
                 st.rerun()
 
-        st.markdown('</div>', unsafe_allow_html=True)
+            # ===== DELETE =====
+            if col2.button("🗑️ Hapus Data"):
+                st.session_state.konfirmasi_hapus = True
+
+            # ===== KONFIRMASI =====
+            if st.session_state.get("konfirmasi_hapus"):
+                st.warning("Yakin mau hapus data ini?")
+
+                c1, c2 = st.columns(2)
+
+                if c1.button("YA, HAPUS"):
+                    df = df.drop(index)
+                    df = df.reset_index(drop=True)
+                    save(df, tabel)
+
+                    st.success("Data berhasil dihapus")
+                    st.session_state.konfirmasi_hapus = False
+                    st.rerun()
+
+                if c2.button("BATAL"):
+                    st.session_state.konfirmasi_hapus = False
 
 # ================= FOOTER =================
 st.markdown("---")
